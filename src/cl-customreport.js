@@ -720,7 +720,7 @@ define([
                         $scope.report.NoOfLeftDims = model.layout.qHyperCube.qNoOfLeftDims;
                         $scope.report.qInterColumnSortOrder = [];
                         _.each(model.layout.qHyperCube.qEffectiveInterColumnSortOrder, function(item) {
-                        $scope.report.qInterColumnSortOrder.push(item);
+                            $scope.report.qInterColumnSortOrder.push(item);
                         });
                   }
                   
@@ -807,8 +807,10 @@ define([
                 $scope.getInterColumnSortOrder = function() {
                     var deferred = $q.defer();
 
+
                     if ($scope.report.visual && $scope.report.interColumnSortOrder.length == 0) {
-                        app.getObject($scope.report.visual.id).then(function(model) {
+                        //app.getObject($scope.report.visual.id).then(function(model) {                            
+                            var model = $scope.report.visual.model;
                             model.getEffectiveProperties().then(function(reply) {
                                 // reply.qHyperCubeDef - just serialize it !!!
                                 var dimCount = reply.qHyperCubeDef.qDimensions.length;
@@ -863,9 +865,30 @@ define([
                                 $scope.report.qInterColumnSortOrder = qInterColSortOrder;
                                 deferred.resolve($scope.report);
                             })
-                        });
+                        //});
                     } else {
                         // get stored data
+                        if($scope.report.interColumnSortOrder.length != $scope.report.usedDimensionsAndMeasures.length) {
+                            var qInterColumnSortOrder = [];
+                            var interColumnSortOrder = []; 
+
+                            _.each($scope.report.usedDimensionsAndMeasures, function(item, index) {
+                                if($scope.report.visualizationType === 'pivot-table' 
+                                && item.type === 'measure') {
+                                    if(qInterColumnSortOrder.indexOf(-1) === -1)
+                                        qInterColumnSortOrder.push(-1);
+                                } else
+                                    qInterColumnSortOrder.push(index);
+
+                                interColumnSortOrder.push({
+                                    dataId: item.dataId,
+                                    type: item.type
+                                });
+                            });
+
+                            $scope.report.qInterColumnSortOrder = qInterColumnSortOrder;
+                            $scope.report.interColumnSortOrder = interColumnSortOrder; 
+                        }
                         deferred.resolve($scope.report);
                     }
                     return deferred.promise;
@@ -1023,6 +1046,9 @@ define([
                 }
 
                 $scope.serializeReportData = function() {
+                  if(!$scope.data.activeTable)
+                    return $q.reject();
+
                   var deferred = $q.defer();
 
                   var activeTableId = $scope.data.activeTable.qInfo.qId;
@@ -1155,7 +1181,7 @@ define([
 
                               if(!isLoadStateOnly || isRestoreSession)
                                 $scope.createChart();
-                              else
+                              else if($scope.report.usedDimensionsAndMeasures.length > 0)
                                 $scope.serializeReport();
 
                               deferred.resolve();
