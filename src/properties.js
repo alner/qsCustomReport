@@ -2,9 +2,7 @@ define( [
     'jquery',
     'qlik',
     'ng!$q',
-    'ng!$http',
-    './lib/js/components/pp-climber/pp-climber'
-
+    'ng!$http'
   ], function ($, qlik, $q, $http) {
   'use strict';
 
@@ -76,6 +74,7 @@ define( [
     type: "string",
     component: "dropdown",
     label: "Select tag",
+    translation: "library.Visualizations",
     ref: "props.tagSetting",
     defaultValue: 'All tables',
     options: function () {
@@ -167,12 +166,6 @@ define( [
   // ****************************************************************************************
   // Property Panel Definition
   // ****************************************************************************************
-  var about = {
-    component: "pp-cl-customreport",
-    translation: "Common.About",
-    show: true,
-  };
-
   // Appearance Panel
   var appearancePanel = {
     uses: "settings",
@@ -180,6 +173,7 @@ define( [
       settings: {
         type: "items",
         label: "Settings",
+        translation: "Widget.Settings",
         items: {
           //tagSetting: tagSetting,
           tagColor: tagColor,
@@ -189,17 +183,16 @@ define( [
           collapseMinHeight: collapseMinHeight,
           displayText: displayText
         }
-      },
-      about: about,
+      }
     }
   };
-
 
 
   // Tag Panel
   var tagPanel = {
     type: "items",
     label: "Setup",
+    translation: "Widget.Settings",
     items: {
       tagPanel: {
         type: "items",

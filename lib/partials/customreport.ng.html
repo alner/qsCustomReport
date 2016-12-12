@@ -38,10 +38,7 @@
       </div>
       <div class='container_right' ng-style="getContainerWidth('right')">
         <div ng-show="fieldsAndSortbarVisible" class="bootstrap">
-          <div class="containerlabel">{{data.displayText}} 
-              <i style="padding-right: 10px" q-title-translation="Tooltip.ClearSelections" class="icon-toolbar-clearselections" ng-click="clearAll()" ng-class="report.usedDimensionsAndMeasures.length == 0 ? 'disabled': ''"></i>
-              <i q-title-translation="AppOverview.Expand" class="icon-maximize" ng-click="hideFieldAndSortbar()"></i>
-          </div>
+          <div class="containerlabel">{{data.displayText}} <i style="padding-right: 10px" title="Clear All" class="icon-toolbar-clearselections" ng-click="clearAll()" ng-class="report.usedDimensionsAndMeasures.length == 0 ? 'disabled': ''"></i><i title="Hide fields/sortbar" class="icon-maximize" ng-click="hideFieldAndSortbar()"></i></div>
           <ul id='reportSortable' ng-class="{plain:!data.tagColor}" class="sortablelist" >
             <li ng-class="item.type=='dimension' ? 'label-dimension' : 'label-measure'" title="{{item.title +'\n' + item.description}}" ng-repeat="item in report.usedDimensionsAndMeasures">
               <div>{{item.title}}</div><span class="icon-vtabs-delete" ng-click="removeItem(item)"></span>

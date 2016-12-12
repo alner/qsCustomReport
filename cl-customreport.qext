@@ -3,8 +3,8 @@
 	"description" : "Custom Report for Qlik Sense",
 	"icon" : "table",
 	"type" : "visualization",
-	"version": "@@version",
+	"version": "2.0.0",
 	"preview" : "customreport.png",
-	"author": "Karl Fredberg Sjöstrand, Alner(improvements)",
+	"author": "Karl Fredberg Sjöstrand (original version), Alex Nerush",
 	"dependencies" : { "qlik-sense" : ">=3.0.x" }
 }

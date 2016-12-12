@@ -3,11 +3,7 @@
 # -------------------------------------------------------------------
 general:
   # Path to the extension directory in Qlik Sense Desktop
-<<<<<<< HEAD
   LocalExtensionPath:   "C:\\Users\\nerush\\Documents\\Qlik\\Sense\\Extensions"
-=======
-  LocalExtensionPath:   "C:\\Users\\clkaf\\Documents\\Qlik\\Sense\\Extensions"
->>>>>>> 8690a7131b8c1a6135bda8eb70e190c548781af2
 
   # Name of the Extension as defined in the generator
   ExtensionName:        "Custom Report"
