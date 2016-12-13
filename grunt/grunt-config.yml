@@ -12,14 +12,14 @@ general:
   ExtensionNameSafe:    "CustomReport"
 
   # Namespace
-  ExtensionNamespace:   "cl-"
+  ExtensionNamespace:   ""
 
   # Description of the Extension as defined in the generator
   ExtensionDescription: "Custom Report for Qlik Sense"
 
   # Version of the extension, will be re-used in several areas,
   # e.g the generated .zip-file in the 'release' Grunt-task
-  Version:              "1.0.5"
+  Version:              "2.0.0"
 
 # -------------------------------------------------------------------
 # Settings for the 'dev' Grunt task

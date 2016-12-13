@@ -448,6 +448,7 @@ define([
                   $scope.getInterColumnSortOrder().then(function(report) {
                       //var qInterColumnSortOrder = [];
 
+                      /*
                       if(report)
                         _.each(report.interColumnSortOrder, function(item) {
                             if (item.type == "measure") {
@@ -476,6 +477,7 @@ define([
     
                             }
                         });
+                        */
 
                       //add newly added item to qInterColumnSortOrder
                       // if (qInterColumnSortOrder.length != columnOrder.length) {
@@ -592,22 +594,25 @@ define([
                                 dimensions = dimensions.concat($scope.getDimensionsProps(
                                     model._properties.qHyperCubeDef.qDimensions
                                 ));
-                                
-                                // "Alternate" dimensions
-                                dimensions = dimensions.concat($scope.getDimensionsProps(
-                                    model._properties.qHyperCubeDef.qLayoutExclude.qHyperCubeDef.qDimensions
-                                ));
 
                                 // Measures
                                 var measures = [];
                                 measures = measures.concat($scope.getMeasuresProps(
                                     model._properties.qHyperCubeDef.qMeasures 
-                                ));
+                                ));                                
+                                
+                                
+                                if(model._properties.qHyperCubeDef.qLayoutExclude) {
+                                    // "Alternate" dimensions
+                                    dimensions = dimensions.concat($scope.getDimensionsProps(
+                                        model._properties.qHyperCubeDef.qLayoutExclude.qHyperCubeDef.qDimensions
+                                    ));
                                                                 
-                                // "Alternate" measures
-                                measures = measures.concat($scope.getMeasuresProps(
-                                    model._properties.qHyperCubeDef.qLayoutExclude.qHyperCubeDef.qMeasures
-                                ));
+                                    // "Alternate" measures
+                                    measures = measures.concat($scope.getMeasuresProps(
+                                        model._properties.qHyperCubeDef.qLayoutExclude.qHyperCubeDef.qMeasures
+                                    ));
+                                }
                                 
                                 $scope.report.dimensions = $scope.data.sortOrder == 'SortByA' ? _.sortBy(dimensions, function(item) {
                                     return item.title;
@@ -713,6 +718,11 @@ define([
                         });
                        */
                         $scope.report.usedDimensionsAndMeasures = usedDimensionsAndMeasures;
+
+                        $scope.report.qInterColumnSortOrder = [];
+                        _.each(model.layout.qHyperCube.qEffectiveInterColumnSortOrder, function(item) {
+                            $scope.report.qInterColumnSortOrder.push(item);
+                        });                        
                   }
                                                                          
                   if($scope.report.visualizationType === 'pivot-table') {
