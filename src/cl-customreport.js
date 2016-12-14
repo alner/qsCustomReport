@@ -602,7 +602,8 @@ define([
                                 ));                                
                                 
                                 
-                                if(model._properties.qHyperCubeDef.qLayoutExclude) {
+                                if(model._properties.qHyperCubeDef.qLayoutExclude
+                                && model._properties.qHyperCubeDef.qLayoutExclude.qHyperCubeDef) {
                                     // "Alternate" dimensions
                                     dimensions = dimensions.concat($scope.getDimensionsProps(
                                         model._properties.qHyperCubeDef.qLayoutExclude.qHyperCubeDef.qDimensions
@@ -669,72 +670,87 @@ define([
                   //$scope.deserializeReport({isLoadStateOnly: false, qId: $scope.data.activeTable.qInfo.qId});
                 }
 
+                $scope.updateUsedDimensionsMeasures = function(qHyperCubeDef) {
+                    var usedDimensionsAndMeasures = [];
+                    usedDimensionsAndMeasures = usedDimensionsAndMeasures.concat($scope.getDimensionsProps(
+                        qHyperCubeDef.qDimensions,
+                        true // all dimensions selected
+                    ));
+
+                    usedDimensionsAndMeasures = usedDimensionsAndMeasures.concat($scope.getMeasuresProps(
+                        qHyperCubeDef.qMeasures,
+                        true // all measures selected
+                    ));
+
+                    $scope.report.usedDimensionsAndMeasures = usedDimensionsAndMeasures;
+                };
+
                 $scope.visualizationChanged = function() {
                   var model = $scope.report.visual && $scope.report.visual.model;
-                  if(!model)
+                  if(!model || ($scope.layout.props.variableExp !== $scope.report.currentState))
                     return;
+
+                  if($scope.report.visualizationType === 'pivot-table') {
+                        // tracking qNoOfLeftDims and qInterColumnSortOrder as for now only
+                        $scope.report.NoOfLeftDims = model.layout.qHyperCube.qNoOfLeftDims;
+
+                        // $scope.report.qInterColumnSortOrder = [];
+                        // _.each(model.layout.qHyperCube.qEffectiveInterColumnSortOrder, function(item) {
+                        //     $scope.report.qInterColumnSortOrder.push(item);
+                        // });
+                  }
                     
                   // check if something changed using exploration menu
-                  var visualScope = $scope.report.visualScope;
-                  if(visualScope && visualScope.object && visualScope.object.showExploreMenu) {                      
+                  //var visualScope = $scope.report.visualScope;
+                  //if(visualScope && visualScope.object && visualScope.object.showExploreMenu) {                      
                         // layout changed
                         var propsWhiteList = _.filter(_.keys(model.layout), function(item){
                             return !item.match(/^q/); // exclude all props started with "q" (whose are process by engine)
                         });
                         // store layout without q-properties
                         $scope.report.layout = _.pick(model.layout, propsWhiteList);
-                      
-                       // Change dimension and measures order
-                       var usedDimensionsAndMeasures = [];
-                       usedDimensionsAndMeasures = usedDimensionsAndMeasures.concat($scope.getDimensionsProps(
-	                       model.effectiveProperties.qHyperCubeDef.qDimensions,
-                           true // all dimensions selected
-                       ));
-                       
-                       usedDimensionsAndMeasures = usedDimensionsAndMeasures.concat($scope.getMeasuresProps(
-	                       model.effectiveProperties.qHyperCubeDef.qMeasures,
-                           true // all measures selected
-                       ));
-                       
-                       /*
-                        _.each(model.layout.qHyperCube.qDimensionInfo, function(dimension, index) {
-                            var itemToMove = _.find($scope.report.usedDimensionsAndMeasures, function(item) {
-                                return item.type == 'dimension' && 
-                                    (item.columnOptions.dataId == dimension.cId || 
-                                     item.columnOptions.dataId == dimension.qLibraryId);
-                            });
-                            if(itemToMove)
-                                usedDimensionsAndMeasures.push(itemToMove);
-                        });
-                        
-                        _.each(model.layout.qHyperCube.qMeasureInfo, function(measure, index) {
-                            var itemToMove = _.find($scope.report.usedDimensionsAndMeasures, function(item) {
-                                return item.type == 'measure' && 
-                                    (item.columnOptions.dataId == measure.cId || 
-                                     item.columnOptions.dataId == measure.qLibraryId);
-                            });
-                            if(itemToMove)
-                                usedDimensionsAndMeasures.push(itemToMove);                            
-                        });
-                       */
-                        $scope.report.usedDimensionsAndMeasures = usedDimensionsAndMeasures;
 
                         $scope.report.qInterColumnSortOrder = [];
                         _.each(model.layout.qHyperCube.qEffectiveInterColumnSortOrder, function(item) {
                             $scope.report.qInterColumnSortOrder.push(item);
                         });                        
-                  }
-                                                                         
-                  if($scope.report.visualizationType === 'pivot-table') {
-                        // tracking qNoOfLeftDims and qInterColumnSortOrder as for now only
-                        $scope.report.NoOfLeftDims = model.layout.qHyperCube.qNoOfLeftDims;
-                        $scope.report.qInterColumnSortOrder = [];
-                        _.each(model.layout.qHyperCube.qEffectiveInterColumnSortOrder, function(item) {
-                            $scope.report.qInterColumnSortOrder.push(item);
-                        });
-                  }
-                  
-                  $scope.serializeReport();
+                      
+                        /*
+                            _.each(model.layout.qHyperCube.qDimensionInfo, function(dimension, index) {
+                                var itemToMove = _.find($scope.report.usedDimensionsAndMeasures, function(item) {
+                                    return item.type == 'dimension' && 
+                                        (item.columnOptions.dataId == dimension.cId || 
+                                        item.columnOptions.dataId == dimension.qLibraryId);
+                                });
+                                if(itemToMove)
+                                    usedDimensionsAndMeasures.push(itemToMove);
+                            });
+                            
+                            _.each(model.layout.qHyperCube.qMeasureInfo, function(measure, index) {
+                                var itemToMove = _.find($scope.report.usedDimensionsAndMeasures, function(item) {
+                                    return item.type == 'measure' && 
+                                        (item.columnOptions.dataId == measure.cId || 
+                                        item.columnOptions.dataId == measure.qLibraryId);
+                                });
+                                if(itemToMove)
+                                    usedDimensionsAndMeasures.push(itemToMove);                            
+                            });
+                        */                      
+                       // Change dimension and measures order, sorting oder                       
+                       // model.getEffectiveProperties().then(function(reply) {
+                       if(model.effectiveProperties.qHyperCubeDef) {
+                            $scope.updateUsedDimensionsMeasures(model.effectiveProperties.qHyperCubeDef);
+                            $scope.serializeReport();
+                        } else {
+                            model.getEffectiveProperties().then(function(reply){
+                                if($scope.report.visual
+                                && $scope.report.visualizationType === reply.visualization) {
+                                    $scope.updateUsedDimensionsMeasures(reply.qHyperCubeDef);
+                                    $scope.serializeReport();
+                                }
+                            });
+                        }
+                  //}                  
                 }
 
                 $scope.closeVisualization = function(){
@@ -797,15 +813,20 @@ define([
                   return deferred.promise;
                 }
 
-                $scope.prepareTable = function() {
+                $scope.prepareTable = function(isOmitDeserialization) {
                     var deferred = $q.defer();
                     $(".rain").show();
                     $scope.loadActiveTable().then(function() {
                         //$scope.loadState(true)
-                        $scope.deserializeReport({isLoadStateOnly: true}).then(function(){
-                          $(".rain").hide();
-                          deferred.resolve(true);
-                        });
+                        if(!isOmitDeserialization)
+                            $scope.deserializeReport({isLoadStateOnly: true}).then(function(){
+                                $(".rain").hide();
+                                deferred.resolve(true);
+                            });
+                        else {
+                                $(".rain").hide();
+                                deferred.resolve(true);
+                        }
                         // $scope.createVisualization().then(function(){
                         //   $(".rain").hide();
                         //   deferred.resolve(true);
@@ -904,9 +925,9 @@ define([
                     return deferred.promise;
                 };
 
-                $scope.setReportState = function(state, isSetStateOnly) {
+                $scope.setReportState = function(state, isSetStateOnly, isOmitDeserialiation) {
                     var deferred = $q.defer();
-                    var promise = isSetStateOnly ? $q.resolve() : $scope.prepareTable();
+                    var promise = isSetStateOnly ? $q.resolve() : $scope.prepareTable(isOmitDeserialiation);
                     promise.then(function() {
                             //var newState = [];
                             if(state && state.usedDimensionsAndMeasures)
@@ -986,12 +1007,14 @@ define([
                         var idx = $scope.report.measures.map(function(x) {
                             return x.dataId;
                         }).indexOf(item.dataId);
-                        $scope.report.measures[idx].selected = false;
+                        if(idx >=0 && idx < $scope.report.measures.length)
+                            $scope.report.measures[idx].selected = false;
                     } else {
                         var idx = $scope.report.dimensions.map(function(x) {
                             return x.dataId;
                         }).indexOf(item.dataId);
-                        $scope.report.dimensions[idx].selected = false;
+                        if(idx >=0 && idx < $scope.report.dimensions.length)
+                            $scope.report.dimensions[idx].selected = false;
                     }
                     $scope.createChart();
                 }
@@ -1033,6 +1056,7 @@ define([
                                 };
                                 break;
                         }
+                        if($scope.report.visual)
                         app.visualization.get($scope.report.visual.id).then(function(visual) {
                             visual.table.exportData(options);
                         });
@@ -1128,7 +1152,6 @@ define([
                 }
 
                 $scope.deserializeReport = function(props) {
-                    // var state = {};
                     var isLoadStateOnly = props && props.isLoadStateOnly;
                     var qId = props && props.qId;
                     var isRestoreSession = qId;
@@ -1158,6 +1181,8 @@ define([
                     } else {
                         // varModel.getProperties().then(function(data){
                         if($scope.report.currentState != varModel) {
+//                            if(!props)
+//                                $scope.closeVisualization();
 
                             var stored,
                                 state = {};
@@ -1185,7 +1210,7 @@ define([
                               }
                             }
                             $scope.report.usedDimensionsAndMeasures = (state && state.usedDimensionsAndMeasures) || [];
-                            $scope.setReportState(state, isLoadStateOnly).then(function(){
+                            $scope.setReportState(state, isLoadStateOnly, true).then(function(){
                               //if(!isRestoreSession)
                               //$scope.report.currentState = varModel;
 
