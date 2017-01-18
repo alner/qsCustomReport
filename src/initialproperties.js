@@ -9,7 +9,8 @@ define( [], function () {
             displayText: "Custom Report",
             tagColor: true,
             sortOrder: "SortByA",
-        }
+            constraints: []
+        },        
         /*
         qHyperCubeDef: {
             qDimensions: [],

@@ -2,8 +2,9 @@ define( [
     'jquery',
     'qlik',
     'ng!$q',
-    'ng!$http'
-  ], function ($, qlik, $q, $http) {
+    'ng!$http',
+    'underscore'
+  ], function ($, qlik, $q, $http, _) {
   'use strict';
 
   var app = qlik.currApp();
@@ -186,6 +187,58 @@ define( [
       }
     }
   };
+  
+  // Constraints
+  var Constraints = {
+    type: "array",
+    ref: "props.constraints",
+    label: "Constraints",
+    translation: "properties.dimensionLimits.limitation",
+    itemTitleRef: function(data, index, handler){
+      var objectItem = _.find(configScope.masterObjectList, function(item) {
+          return item.qInfo.qId === data.object;
+      });
+
+      return (objectItem && objectItem.qMeta.title) || data.object;
+    },
+    allowAdd: true,
+    allowRemove: true,
+    addTranslation: "Common.Create",
+    items: {
+      objectConstraints: {
+        ref: "object",
+        label: "Object",
+        translation: "Common.CustomObjects",
+        type: "string",
+        component: "dropdown",
+        options: function(propertyData) {
+          return configScope.masterObjectList.map(function(item){
+            return {
+              value: item.qInfo.qId,
+              label: item.qMeta.title
+            }
+          })
+        },
+        defaultValue: function(){
+          return (configScope.activeTable && configScope.activeTable.qInfo.qId) || '';
+        }
+      },
+      dimensionsLimit: {
+        type: "integer",
+        label: "Dimensions",
+        translation: "Common.Dimensions",
+        ref: "dimension",
+        defaultValue: 1,
+      },
+      measuresLimit: {
+        type: "integer",
+        label: "Measures",
+        translation: "Common.Measures",
+        ref: "measure",
+        defaultValue: 1        
+      }
+    }
+  };
 
 
   // Tag Panel
@@ -234,6 +287,13 @@ define( [
         expression: "always",
         expressionType : "StringExpression",
         show: false
+      },
+      constraints: {
+        type: "items",
+        component: "expandable-items",
+        items: {
+          constraints: Constraints
+        }        
       }
     }
   };
@@ -249,19 +309,24 @@ define( [
     }
   }
 
-  // Return values
-  return {
-    type: "items",
-    component: "accordion",
-    items: {
-      tag: tagPanel,
-      //dimensions: dimensions,
-      //measures: measures,
-      //sorting: sorting,
-      addons: addons,
-      appearance: appearancePanel
-
+  var configScope;
+  function getProperties(scope) {
+    configScope = scope; 
+    return {
+      type: "items",
+      component: "accordion",
+      items: {
+        tag: tagPanel,
+        //dimensions: dimensions,
+        //measures: measures,
+        //sorting: sorting,
+        addons: addons,
+        appearance: appearancePanel
+      }
     }
-  };
+  }
+
+  // Return values
+  return getProperties;
 
 } );

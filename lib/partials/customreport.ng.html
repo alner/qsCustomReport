@@ -11,7 +11,7 @@
           <div ng-show="isShowMasterObjectList" class="form-group">
               <div class="containerlabel" q-translation="library.Visualizations"></div>
 
-                  <form name="myForm">
+            <form name="myForm">
               <!--label class="containerlabel" for="repeatSelect">Select master object: </label-->
               <lui-select name="mySelect" id="mySelect"
                 ng-change="changeTable()"
@@ -21,19 +21,41 @@
             </form>
           </div>
 
-            <div class="containerlabel" q-translation="Common.Dimensions"></div>
+            <div>
+                <span class="containerlabel" q-translation="Common.Dimensions"></span>
+                <span ng-show="report.limits.dimensions > 0">
+                    <!--span class="lui-text-default" q-translation="properties.dimensionLimits.limitation"></span-->
+                    <span>{{report.selections.dimension}} / {{report.limits.dimensions}}</span>
+                </span>
+            </div>            
             <ul id='dimensionSortable' class="lui-list dimension-list" ng-style="getListMaxHeight('dimension')">
-              <li qv-swipe="swipe($event)" ng-class="dimension.handle" class="lui-list__item" data-id={{dimension.dataId}} ng-click="selectItem(dimension)" title="{{dimension.title +'\n' + dimension.description}}"  ng-repeat="dimension in report.dimensions">
+                <!-- ng-class="dimension.handle" -->
+                <li qv-swipe="swipe($event)" class="lui-list__item" 
+                    ng-class="!dimension.selected && report.limits.dimensions > 0  && report.selections.dimension >= report.limits.dimensions ? 'lui-disabled': ''" 
+                    data-id={{dimension.dataId}} 
+                    ng-click="selectItem(dimension)" 
+                    title="{{dimension.title +'\n' + dimension.description}}"  
+                    ng-repeat="dimension in report.dimensions">
                 <div class="lui-list__text">{{dimension.title}}</div><div class="icon-tick lui-list-icon" ng-if="dimension.selected"></div>
-              </li>
+                </li>
             </ul>
-          <div class="containerlabel" q-translation="Common.Measures"></div>
+            
+          <div> <!-- ng-show="isUpdateRights" -->
+            <span class="containerlabel" q-translation="Common.Measures"></span>
+            <span ng-show="report.limits.measures > 0">          
+                <!--span class="lui-text-default" q-translation="properties.dimensionLimits.limitation"></span-->
+                <span>{{report.selections.measure}} / {{report.limits.measures}}</span>
+            </span>
+          </div>
           <ul id='measureSortable' class="lui-list measure-list" ng-style="getListMaxHeight('measure')">
-            <li class="lui-list__item" ng-click="selectItem(measure)" title="{{measure.title +'\n' + measure.description}}"  ng-repeat="measure in report.measures">
+            <li class="lui-list__item" 
+                ng-class="!measure.selected && report.limits.measures > 0 && report.selections.measure >= report.limits.measures ? 'lui-disabled': ''" 
+                ng-click="selectItem(measure)" 
+                title="{{measure.title +'\n' + measure.description}}"  
+                ng-repeat="measure in report.measures">
               <div class="lui-list__text">{{measure.title}}</div><div class="lui-icon--tick lui-icon" ng-if="measure.selected"></div>
             </li>
           </ul>
-          <!--button ng-click="serializeReport()">Test</button-->
         </div>
       </div>
       <div class='container_right' ng-style="getContainerWidth('right')">
@@ -112,7 +134,7 @@
           <button  ng-show="fieldsAndSortbarVisible && isShouldCommitChanges"
               ng-click="commitChanges()"
               q-translation="Common.Apply"
-              class="lui-button"
+              class="lui-button--success"
               style="width: 100%; height: 100%">
           </button>
           <div ng-show="!isShouldCommitChanges" id="customreporttable" class="qv-object" style="overflow: visible" ></div>

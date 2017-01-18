@@ -12,10 +12,23 @@ define([
         'text!./lib/css/style.css',
         'text!./lib/partials/customreport.ng.html',
     ],
-    function($, _, qlik, $q, $http, props, initProps, stateUtil, extensionUtils, sortable, cssContent, ngTemplate) {
+    function($, _, qlik, $q, $http, getProperties, initProps, stateUtil, extensionUtils, sortable, cssContent, ngTemplate) {
         'use strict';
 
         extensionUtils.addStyleToHeader(cssContent);
+
+        var configData = {
+            tag: null,
+            tagColor: true,
+            sortOrder: 'SortByA',
+            activeTable: null,
+            displayText: 'Custom Report',
+            masterObjectList: [],
+            masterDimensions: null,
+            masterMeasures: null,                     
+        };
+
+        var props = getProperties(configData);
 
         return {
 
@@ -42,7 +55,7 @@ define([
                 if(this.$scope.isInitialized()) {
                   //if(!this.$scope.isChangedTable) {
                     //this.$scope.closeVisualization();
-                    this.$scope.deserializeReport(); // {isProhibitVariableChange: true}
+                    this.$scope.deserializeReport().then(this.$scope.showLimits); // {isProhibitVariableChange: true}
                   //}
                  //else
                    //this.$scope.isChangedTable = false; // reset flag
@@ -269,11 +282,10 @@ define([
                 });
             },
 
-
-
             template: ngTemplate,
 
             controller: ['$scope', function($scope) {
+                // console.log('layout', $scope.layout);
 
                 $scope.size = {
                     clientHeight: -1,
@@ -287,17 +299,19 @@ define([
                 //$scope.isChangedTable = false;
                 $scope.isShouldCommitChanges = false;
 
-                $scope.data = {
-                    tag: null,
-                    tagColor: true,
-                    sortOrder: 'SortByA',
-                    activeTable: null,
-                    displayText: 'Custom Report',
-                    masterObjectList: [],
-                    masterDimensions: null,
-                    masterMeasures: null
-                };
-
+                $scope.data = configData; 
+                // {
+                //     tag: null,
+                //     tagColor: true,
+                //     sortOrder: 'SortByA',
+                //     activeTable: null,
+                //     displayText: 'Custom Report',
+                //     masterObjectList: [],
+                //     masterDimensions: null,
+                //     masterMeasures: null,                     
+                // };
+                var permissions = qlik.currApp().model.layout.permissions;
+                $scope.isUpdateRights = permissions && permissions.update;
                 $scope.isShowMasterObjectList  = false;
 
                 // Current (displayed) report configuration
@@ -314,7 +328,16 @@ define([
                     interColumnSortOrder: [],
                     columnOrder: [],
                     NoOfLeftDims: null,
-                    currentState: null
+                    currentState: null,
+                    limits: {
+                        dimensions: 0, // current report dimensions limit. 0 - no limits
+                        measures: 0, // current report measures limit. 0 - no limits
+                        //objects: {} // limits for all objects
+                    },
+                    selections: {
+                        dimension: 0, // count of selected dimensions
+                        measure: 0 // count of selected measures
+                    }
                 };
 
                 var dragoverHandler = function(event) {
@@ -653,6 +676,41 @@ define([
                 //   return deferred.promise;
                 // }
 
+                // $scope.limitsChanged = function() {
+                //     var activeTableId = $scope.data.activeTable.qInfo.qId;
+                //     if(activeTableId) {
+                //         console.log($scope.report.limits.dimensions);
+                //         console.log($scope.report.limits.measures);
+                //         var limits = $scope.report.limits.objects[activeTableId];
+                //         if(!limits) $scope.report.limits.objects[activeTableId] = {};
+                //         $scope.report.limits.objects[activeTableId].dimensions = $scope.report.limits.dimensions;
+                //         $scope.report.limits.objects[activeTableId].measures = $scope.report.limits.measures;
+                //     }
+
+                //     $scope.serializeReport();
+                // }
+
+                $scope.showLimits = function() {
+                    // show limits for dimensions/measures if applied...
+                    var activeObject = $scope.data.activeTable;
+                    var limits = activeObject && _.find($scope.layout.props.constraints, function(limit) {
+                        return limit.object === activeObject.qInfo.qId;
+                    });
+
+                    if(limits) {
+                        // Current object limits
+                        $scope.report.limits.dimensions = limits.dimension;
+                        $scope.report.limits.measures = limits.measure;
+
+                        var count = _.countBy($scope.report.usedDimensionsAndMeasures, 'type');
+                        $scope.report.selections.dimension = count.dimension || 0;
+                        $scope.report.selections.measure = count.measure || 0;
+                    } else {
+                        $scope.report.limits.dimensions = 0;
+                        $scope.report.limits.measures = 0;
+                    }
+                }
+
                 $scope.changeTable = function() {
                   if($scope.data.activeTable) {
                         //$scope.isChangedTable = true;
@@ -663,8 +721,9 @@ define([
                             $scope.deserializeReport({
                                 isLoadStateOnly: true,
                                 qId: $scope.data.activeTable.qInfo.qId
-                            });                            
-                        });
+                            }).then($scope.showLimits);
+
+                        });                        
                   }
                   //$scope.prepareTable();
                   //$scope.deserializeReport({isLoadStateOnly: false, qId: $scope.data.activeTable.qInfo.qId});
@@ -820,8 +879,9 @@ define([
                         //$scope.loadState(true)
                         if(!isOmitDeserialization)
                             $scope.deserializeReport({isLoadStateOnly: true}).then(function(){
-                                $(".rain").hide();
+                                $(".rain").hide();                                
                                 deferred.resolve(true);
+                                $scope.showLimits();
                             });
                         else {
                                 $(".rain").hide();
@@ -971,7 +1031,26 @@ define([
                     if (idx > -1) {
                         item.selected = false;
                         $scope.report.usedDimensionsAndMeasures.splice(idx, 1);
+                        var count = $scope.report.selections[item.type];
+                        if(count > 0)
+                          $scope.report.selections[item.type] = count - 1; // deselected one
                     } else {
+                        // check limits
+                        // ... if limits exists
+                        var activeObject = $scope.data.activeTable;
+                        // ... find limits for "active" object
+                        var limits = activeObject && _.find($scope.layout.props.constraints, function(limit) {
+                            return limit.object === activeObject.qInfo.qId;
+                        });
+
+                        if(limits) {
+                            var count = _.countBy($scope.report.usedDimensionsAndMeasures, 'type');
+                            if(limits[item.type] > 0 && count[item.type] >= limits[item.type])
+                                return;
+
+                            $scope.report.selections[item.type] = (count[item.type] || 0) + 1;                                
+                        }
+
                         item.selected = true;
                         $scope.report.usedDimensionsAndMeasures.push(item);
                     }
@@ -1090,6 +1169,7 @@ define([
                     activeTableId: activeTableId,
                     fieldsAndSortbarVisible: $scope.fieldsAndSortbarVisible,
                     states: {}
+                    //limits: {}
                   };
 
                 //   var itemIds = [];
@@ -1103,8 +1183,19 @@ define([
                     visualizationType: $scope.data.activeTable.qData.visualization,
                     usedDimensionsAndMeasures: $scope.report.usedDimensionsAndMeasures,
                     layout: $scope.report.layout,
-                    qNoOfLeftDims: $scope.report.NoOfLeftDims
+                    qNoOfLeftDims: $scope.report.NoOfLeftDims,
+                    // limits: {
+                    //     // active object limits
+                    //     dimensions: $scope.report.limits.dimensions,
+                    //     measures: $scope.report.limits.measures
+                    // }
                   };
+
+                  // store limits (copy)
+                //   var objectsForLimits = _.keys($scope.report.limits.objects);
+                //   _.each(objectsForLimits, function(objectId){
+                //       data.limits[objectId] = _.clone($scope.report.limits.objects[objectId]);
+                //   });
 
                   $scope.getInterColumnSortOrder().then(function(report) {
                       if(report) {
@@ -1177,6 +1268,11 @@ define([
                       $scope.report.currentState = null;
                       $scope.report.NoOfLeftDims = null;
                       $scope.report.layout = null;
+                    //   $scope.report.limits = {
+                    //       objects: {}
+                    //   };
+                      //$scope.report.limits.dimensions = 0;
+                      //$scope.report.limits.measures = 0;
                       deferred.resolve();
                     } else {
                         // varModel.getProperties().then(function(data){
@@ -1202,12 +1298,16 @@ define([
                                 $scope.report.qInterColumnSortOrder = state.qInterColumnSortOrder ? state.qInterColumnSortOrder : [];
                                 $scope.report.interColumnSortOrder = state.interColumnSortOrder ? state.interColumnSortOrder : [];
                                 $scope.report.layout = state.layout;
+                                //$scope.report.limits.dimensions = (state.limits && state.limits.dimensions) || 0;
+                                //$scope.report.limits.measures = (state.limits && state.limits.measures) || 0;
                                 
                                 // Set active object                                
                                 $scope.data.activeTable = _.find($scope.data.masterObjectList, function(item) {
                                     return item.qInfo.qId == activeTableId && item.qData.visualization == $scope.report.visualizationType;
                                 });                                
                               }
+                              //$scope.report.limits.objects = (stored.limits) || {};
+                              //_.extend($scope.report.limits.objects, (stored.limits) || {});
                             }
                             $scope.report.usedDimensionsAndMeasures = (state && state.usedDimensionsAndMeasures) || [];
                             $scope.setReportState(state, isLoadStateOnly, true).then(function(){
@@ -1335,7 +1435,7 @@ define([
                     var el = document.getElementById('reportSortable');
                     sortable.create(el, $scope.reportConfig);
 
-                    $scope.deserializeReport();
+                    $scope.deserializeReport().then($scope.showLimits);
 
                     $(".rain").hide();
                      if(!$scope.fieldsAndSortbarVisible)
