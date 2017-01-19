@@ -405,16 +405,21 @@ define([
                                 if ($scope.data.tag == 'All tables') {
                                     acc.push(obj);
                                 } else {
-                                    _.each(obj.qMeta.tags, function(tag) {
-                                        if (tag == $scope.data.tag) {
-                                            acc.push(obj);
-                                        }
-                                    });
+                                    if(obj.qMeta)
+                                        _.each(obj.qMeta.tags, function(tag) {
+                                            if (tag == $scope.data.tag) {
+                                                acc.push(obj);
+                                            }
+                                        });
                                 }
                             //}
                             return acc;
                         }, []);
                         $scope.isShowMasterObjectList = $scope.data.masterObjectList.length > 1;
+
+                        if(!$scope.data.activeTable && $scope.data.masterObjectList.length > 0)
+                            $scope.data.activeTable = $scope.data.masterObjectList[0];
+
                         deferred.resolve(true);
                     });
                     return deferred.promise;
@@ -1075,8 +1080,8 @@ define([
                     $scope.report.usedDimensionsAndMeasures = [];
                     $scope.report.interColumnSortOrder = [];
                     $scope.report.qInterColumnSortOrder = [];
+                    $scope.showLimits();
                     $scope.createChart();
-
                 }
 
                 $scope.removeItem = function(item) {
@@ -1095,6 +1100,7 @@ define([
                         if(idx >=0 && idx < $scope.report.dimensions.length)
                             $scope.report.dimensions[idx].selected = false;
                     }
+                    $scope.showLimits();
                     $scope.createChart();
                 }
 
@@ -1434,7 +1440,6 @@ define([
                 initMasterItems().then(function(reply) {
                     var el = document.getElementById('reportSortable');
                     sortable.create(el, $scope.reportConfig);
-
                     $scope.deserializeReport().then($scope.showLimits);
 
                     $(".rain").hide();

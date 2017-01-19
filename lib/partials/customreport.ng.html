@@ -21,12 +21,10 @@
             </form>
           </div>
 
-            <div>
-                <span class="containerlabel" q-translation="Common.Dimensions"></span>
-                <span ng-show="report.limits.dimensions > 0">
-                    <!--span class="lui-text-default" q-translation="properties.dimensionLimits.limitation"></span-->
-                    <span>{{report.selections.dimension}} / {{report.limits.dimensions}}</span>
-                </span>
+            <div class="containerlabel">
+                <span q-translation="Common.Dimensions"></span>
+                <!--span class="lui-text-default" q-translation="properties.dimensionLimits.limitation"></span-->
+                <span ng-show="report.limits.dimensions > 0">{{report.selections.dimension}} / {{report.limits.dimensions}}</span>
             </div>            
             <ul id='dimensionSortable' class="lui-list dimension-list" ng-style="getListMaxHeight('dimension')">
                 <!-- ng-class="dimension.handle" -->
@@ -40,12 +38,10 @@
                 </li>
             </ul>
             
-          <div> <!-- ng-show="isUpdateRights" -->
-            <span class="containerlabel" q-translation="Common.Measures"></span>
-            <span ng-show="report.limits.measures > 0">          
-                <!--span class="lui-text-default" q-translation="properties.dimensionLimits.limitation"></span-->
-                <span>{{report.selections.measure}} / {{report.limits.measures}}</span>
-            </span>
+          <div class="containerlabel"> <!-- ng-show="isUpdateRights" -->
+            <span q-translation="Common.Measures"></span>
+            <!--span class="lui-text-default" q-translation="properties.dimensionLimits.limitation"></span-->
+            <span ng-show="report.limits.measures > 0" >{{report.selections.measure}} / {{report.limits.measures}}</span>
           </div>
           <ul id='measureSortable' class="lui-list measure-list" ng-style="getListMaxHeight('measure')">
             <li class="lui-list__item" 
