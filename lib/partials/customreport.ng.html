@@ -26,15 +26,15 @@
                 <!--span class="lui-text-default" q-translation="properties.dimensionLimits.limitation"></span-->
                 <span ng-show="report.limits.dimensions > 0">{{report.selections.dimension}} / {{report.limits.dimensions}}</span>
             </div>            
-            <ul id='dimensionSortable' class="lui-list dimension-list" ng-style="getListMaxHeight('dimension')">
+            <ul id='dimensionSortable' class="cr-lui-list dimension-list" ng-style="getListMaxHeight('dimension')">
                 <!-- ng-class="dimension.handle" -->
-                <li qv-swipe="swipe($event)" class="lui-list__item" 
+                <li qv-swipe="swipe($event)" class="cr-lui-list__item" 
                     ng-class="!dimension.selected && report.limits.dimensions > 0  && report.selections.dimension >= report.limits.dimensions ? 'lui-disabled': ''" 
                     data-id={{dimension.dataId}} 
                     ng-click="selectItem(dimension)" 
                     title="{{dimension.title +'\n' + dimension.description}}"  
                     ng-repeat="dimension in report.dimensions">
-                <div class="lui-list__text">{{dimension.title}}</div><div class="icon-tick lui-list-icon" ng-if="dimension.selected"></div>
+                <div class="cr-lui-list__text">{{dimension.title}}</div><div class="icon-tick lui-icon" ng-if="dimension.selected"></div>
                 </li>
             </ul>
             
@@ -43,13 +43,13 @@
             <!--span class="lui-text-default" q-translation="properties.dimensionLimits.limitation"></span-->
             <span ng-show="report.limits.measures > 0" >{{report.selections.measure}} / {{report.limits.measures}}</span>
           </div>
-          <ul id='measureSortable' class="lui-list measure-list" ng-style="getListMaxHeight('measure')">
-            <li class="lui-list__item" 
+          <ul id='measureSortable' class="cr-lui-list measure-list" ng-style="getListMaxHeight('measure')">
+            <li class="cr-lui-list__item" 
                 ng-class="!measure.selected && report.limits.measures > 0 && report.selections.measure >= report.limits.measures ? 'lui-disabled': ''" 
                 ng-click="selectItem(measure)" 
                 title="{{measure.title +'\n' + measure.description}}"  
                 ng-repeat="measure in report.measures">
-              <div class="lui-list__text">{{measure.title}}</div><div class="lui-icon--tick lui-icon" ng-if="measure.selected"></div>
+              <div class="cr-lui-list__text">{{measure.title}}</div><div class="lui-icon--tick lui-icon" ng-if="measure.selected"></div>
             </li>
           </ul>
         </div>

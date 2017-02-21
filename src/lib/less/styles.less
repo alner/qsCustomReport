@@ -166,3 +166,98 @@ i.icon-toolbar-clearselections.disabled {
 .qv-soft-property-panel .em-icon-item-component {
   font-family: 'LUI icons' !important;
 }
+
+.cr-lui-list {
+  color: #595959;
+  background-color: transparent;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.cr-lui-list .cr-lui-list__header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #595959;
+}
+
+.cr-lui-list .cr-lui-list__item {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  background-clip: padding-box;
+}
+.cr-lui-list .cr-lui-list__item.lui-disabled {
+  color: rgba(89, 89, 89, 0.3);
+}
+.cr-lui-list .cr-lui-list__item.lui-selected {
+  background-color: #F2F2F2;
+}
+.cr-lui-list .cr-lui-list__item.lui-active {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+.cr-lui-list .cr-lui-list__divider {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+.cr-lui-list__header,
+.cr-lui-list__item {
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-align-items: center;
+      -ms-flex-align: center;
+          align-items: center;
+}
+.cr-lui-list__header > *,
+.cr-lui-list__item > * {
+  -webkit-flex: 0 0 auto;
+      -ms-flex: 0 0 auto;
+          flex: 0 0 auto;
+  padding: 0 10px;
+}
+.cr-lui-list__header {
+  font-weight: bold;
+  min-height: 23px;
+}
+.cr-lui-list__header:after {
+  content: "";
+  min-height: 23px;
+  display: block;
+}
+.cr-lui-list__item {
+  min-height: 37px;
+}
+.cr-lui-list__item:after {
+  content: "";
+  min-height: 37px;
+  display: block;
+}
+.cr-lui-list__text {
+  -webkit-flex: 1 1 auto;
+      -ms-flex: 1 1 auto;
+          flex: 1 1 auto;
+}
+.cr-lui-list__text--ellipsis {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+.cr-lui-list__divider {
+  -webkit-align-self: stretch;
+      -ms-flex-item-align: stretch;
+          align-self: stretch;
+  width: 1px;
+  padding: 0;
+}
+.cr-lui-list__aside + .cr-lui-list__text {
+  padding-left: 0;
+}
+.cr-lui-list__text + .cr-lui-list__aside {
+  padding-left: 0;
+}
+[dir="rtl"] .cr-lui-list__aside + .cr-lui-list__text {
+  padding-left: 10px;
+  padding-right: 0;
+}
+[dir="rtl"] .cr-lui-list__text + .cr-lui-list__aside {
+  padding-left: 10px;
+  padding-right: 0;
+}

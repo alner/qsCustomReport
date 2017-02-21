@@ -34,32 +34,42 @@ define([
 
             definition: props,
             initialProperties: initProps,
-            snapshot: {
-                canTakeSnapshot: false
+            support: {
+                snapshot: true,
+                export: false
             },
 
             resize: function($element, layout) {
-
-                this.$scope.size.clientHeight = $element.context.clientHeight;
-                this.$scope.size.clientWidth = $element.context.clientWidth;
+                console.log('resize');
+                this.$scope.size.clientHeight = $element[0].clientHeight;
+                this.$scope.size.clientWidth = $element[0].clientWidth;
 
                 this.$scope.handleResize($element,layout.props.allowCollapse);
 
             },
 
             paint: function($element, layout) {
-                this.$scope.size.clientHeight = $element.context.clientHeight;
-                this.$scope.size.clientWidth = $element.context.clientWidth;
+                const self = this;
+                self.$scope.size.clientHeight = $element[0].clientHeight //$element.context.clientHeight;
+                self.$scope.size.clientWidth = $element[0].clientWidth;
 
-                this.$scope.handleResize($element,layout.props.allowCollapse);
-                if(this.$scope.isInitialized()) {
-                  //if(!this.$scope.isChangedTable) {
+                self.$scope.handleResize($element,layout.props.allowCollapse);
+
+                //const readyToPrint = new qlik.Promise(function(resolve, reject){                
+                if(self.$scope.isInitialized()) {
+                //if(!this.$scope.isChangedTable) {
                     //this.$scope.closeVisualization();
-                    this.$scope.deserializeReport().then(this.$scope.showLimits); // {isProhibitVariableChange: true}
-                  //}
-                 //else
-                   //this.$scope.isChangedTable = false; // reset flag
+                    self.$scope.deserializeReport().then(function(){
+                        self.$scope.showLimits();
+                        return qlik.Promise.resolve();
+                    }); // {isProhibitVariableChange: true}
+                //}
+                //else
+                //this.$scope.isChangedTable = false; // reset flag
+                } else {
+                    return qlik.Promise.resolve();
                 }
+                //});
             },
 
             getExportRawDataOptions: function(a, c, e) {
@@ -378,7 +388,7 @@ define([
 
                 $scope.handleResize = function($element, allowCollapse) {
 
-                    if ($element.context.clientHeight < $scope.minHeightCollapsed || $element.context.clientWidth < $scope.minWidthCollapsed) {
+                    if ($element[0].clientHeight < $scope.minHeightCollapsed || $element[0].clientWidth < $scope.minWidthCollapsed) {
                         if (!$scope.collapsed && allowCollapse) {
                             $scope.collapsed = true;
                             $scope.createChart();
