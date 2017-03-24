@@ -43,7 +43,8 @@ define( [
       var exportTags = [];
 
       _.each( data.qAppObjectList.qItems, function ( item ) {
-        if (item.qData.visualization == 'table' ) {
+        //if (item.qData.visualization == 'table' ) {
+        if(item.qMeta) {
           _.each( item.qMeta.tags, function ( tag ) {
             tags.push(tag);
           });
@@ -187,14 +188,21 @@ define( [
       }
     }
   };
+
+  function getReportConfigData(qId) {
+    var scope = $('#cl-customreport-container'+qId).scope();
+    return scope && scope.data;
+  }
   
   // Constraints
+  var configScope;
   var Constraints = {
     type: "array",
     ref: "props.constraints",
     label: "Constraints",
     translation: "properties.dimensionLimits.limitation",
-    itemTitleRef: function(data, index, handler){
+    itemTitleRef: function(data, index, objectClass){
+      configScope = getReportConfigData(objectClass.layout.qInfo.qId);      
       var objectItem = _.find(configScope.masterObjectList, function(item) {
           return item.qInfo.qId === data.object;
       });
@@ -211,8 +219,9 @@ define( [
         translation: "Common.CustomObjects",
         type: "string",
         component: "dropdown",
-        options: function(propertyData) {
-          return configScope.masterObjectList.map(function(item){
+        options: function(propertyData, objectClass, object) {
+          configScope = getReportConfigData(object.layout.qInfo.qId);
+          return configScope && configScope.masterObjectList.map(function(item){
             return {
               value: item.qInfo.qId,
               label: item.qMeta.title
@@ -220,7 +229,7 @@ define( [
           })
         },
         defaultValue: function(){
-          return (configScope.activeTable && configScope.activeTable.qInfo.qId) || '';
+          return (configScope && configScope.activeTable && configScope.activeTable.qInfo.qId) || '';
         }
       },
       dimensionsLimit: {
@@ -309,10 +318,25 @@ define( [
     }
   }
 
-  var configScope;
-  function getProperties(scope) {
-    configScope = scope; 
-    return {
+  // var configScope;
+  // function getProperties(scope) {
+  //   configScope = scope; 
+  //   return {
+  //     type: "items",
+  //     component: "accordion",
+  //     items: {
+  //       tag: tagPanel,
+  //       //dimensions: dimensions,
+  //       //measures: measures,
+  //       //sorting: sorting,
+  //       addons: addons,
+  //       appearance: appearancePanel
+  //     }
+  //   }
+  // }
+
+  // Return values
+  return {
       type: "items",
       component: "accordion",
       items: {
@@ -323,10 +347,6 @@ define( [
         addons: addons,
         appearance: appearancePanel
       }
-    }
-  }
-
-  // Return values
-  return getProperties;
+  };
 
 } );

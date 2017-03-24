@@ -12,23 +12,10 @@ define([
         'text!./lib/css/style.css',
         'text!./lib/partials/customreport.ng.html',
     ],
-    function($, _, qlik, $q, $http, getProperties, initProps, stateUtil, extensionUtils, sortable, cssContent, ngTemplate) {
+    function($, _, qlik, $q, $http, props, initProps, stateUtil, extensionUtils, sortable, cssContent, ngTemplate) {
         'use strict';
 
         extensionUtils.addStyleToHeader(cssContent);
-
-        var configData = {
-            tag: null,
-            tagColor: true,
-            sortOrder: 'SortByA',
-            activeTable: null,
-            displayText: 'Custom Report',
-            masterObjectList: [],
-            masterDimensions: null,
-            masterMeasures: null,                     
-        };
-
-        var props = getProperties(configData);
 
         return {
 
@@ -40,7 +27,6 @@ define([
             },
 
             resize: function($element, layout) {
-                console.log('resize');
                 this.$scope.size.clientHeight = $element[0].clientHeight;
                 this.$scope.size.clientWidth = $element[0].clientWidth;
 
@@ -73,17 +59,18 @@ define([
             },
 
             getExportRawDataOptions: function(a, c, e) {
+                var customReportContainer$ = $('#cl-customreport-container' + c.id);
                 c.getVisualization().then(function(visualization) {
-                    if (!$('#cl-customreport-container').scope().collapsed) {
-                        if ($('#cl-customreport-container').scope().fieldsAndSortbarVisible) {
+                    if (!customReportContainer$.scope().collapsed) {
+                        if (customReportContainer$.scope().fieldsAndSortbarVisible) {
                             a.addItem({
                                 translation: "AppOverview.Expand", //"Hide fields/sortbar",
                                 tid: "Expand",
                                 icon: "icon-maximize",
                                 select: function() {
                                     //console.log($('#cl-customreport-container').scope());
-                                    $('#cl-customreport-container').parents('.qv-inner-object').css('overflow', 'visible');
-                                    $('#cl-customreport-container').scope().hideFieldAndSortbar();
+                                    customReportContainer$.parents('.qv-inner-object').css('overflow', 'visible');
+                                    customReportContainer$.scope().hideFieldAndSortbar();
                                 }
                             });
 
@@ -94,18 +81,18 @@ define([
                                 icon: "icon-minimize",
                                 select: function() {
                                     //console.log($('#cl-customreport-container').scope());
-                                    $('#cl-customreport-container').parents('.qv-inner-object').css('overflow', 'hidden');
-                                    $('#cl-customreport-container').scope().showFieldAndSortbar();
+                                    customReportContainer$.parents('.qv-inner-object').css('overflow', 'hidden');
+                                    customReportContainer$.scope().showFieldAndSortbar();
                                 }
                             });
                         }
                     }
-                    var count = _.countBy($('#cl-customreport-container').scope().report.usedDimensionsAndMeasures, 'type');
+                    var count = _.countBy(customReportContainer$.scope().report.usedDimensionsAndMeasures, 'type');
 
-                    var unselectedDimensionCount = count.dimension ? $('#cl-customreport-container').scope().report.dimensions.length - count.dimension
-                                                                   : $('#cl-customreport-container').scope().report.dimensions.length;
-                    var unselectedMeasuresCount = count.measure ? $('#cl-customreport-container').scope().report.measures.length - count.measure
-                                                                   : $('#cl-customreport-container').scope().report.measures.length;
+                    var unselectedDimensionCount = count.dimension ? customReportContainer$.scope().report.dimensions.length - count.dimension
+                                                                   : customReportContainer$.scope().report.dimensions.length;
+                    var unselectedMeasuresCount = count.measure ? customReportContainer$.scope().report.measures.length - count.measure
+                                                                   : customReportContainer$.scope().report.measures.length;
                     //Add fields
                     if (unselectedDimensionCount || unselectedMeasuresCount) {
 
@@ -122,14 +109,14 @@ define([
                                 icon: "icon-add"
                             });
 
-                             _.each($('#cl-customreport-container').scope().report.dimensions, function(item){
+                             _.each(customReportContainer$.scope().report.dimensions, function(item){
                                 //console.log(item);
                                 if (!item.selected) {
                                     submenuAddDimension.addItem({
                                         translation: item.title,
                                         tid: "dimension",
                                         select: function() {
-                                            $('#cl-customreport-container').scope().selectItem(item);
+                                            customReportContainer$.scope().selectItem(item);
                                         }
                                     });
                                 }
@@ -144,14 +131,14 @@ define([
                                 icon: "icon-add"
                             });
 
-                             _.each($('#cl-customreport-container').scope().report.measures, function(item){
+                             _.each(customReportContainer$.scope().report.measures, function(item){
                                 //console.log(item);
                                 if (!item.selected) {
                                     submenuAddMeasure.addItem({
                                         translation: item.title,
                                         tid: "switch",
                                         select: function() {
-                                            $('#cl-customreport-container').scope().selectItem(item);
+                                            customReportContainer$.scope().selectItem(item);
                                         }
                                     });
                                 }
@@ -177,14 +164,14 @@ define([
                                 icon: "icon-remove"
                             });
 
-                             _.each($('#cl-customreport-container').scope().report.dimensions, function(item){
+                             _.each(customReportContainer$.scope().report.dimensions, function(item){
                                 //console.log(item);
                                 if (item.selected) {
                                     submenuRemoveDimension.addItem({
                                         translation: item.title,
                                         tid: "dimension",
                                         select: function() {
-                                            $('#cl-customreport-container').scope().removeItem(item);
+                                            customReportContainer$.scope().removeItem(item);
                                         }
                                     });
                                 }
@@ -199,14 +186,14 @@ define([
                                 icon: "icon-remove"
                             });
 
-                             _.each($('#cl-customreport-container').scope().report.measures, function(item){
+                             _.each(customReportContainer$.scope().report.measures, function(item){
                                 //console.log(item);
                                 if (item.selected) {
                                     submenuRemoveMeasure.addItem({
                                         translation: item.title,
                                         tid: "switch",
                                         select: function() {
-                                            $('#cl-customreport-container').scope().removeItem(item);
+                                            customReportContainer$.scope().removeItem(item);
                                         }
                                     });
                                 }
@@ -215,30 +202,30 @@ define([
 
                      }
 
-                    var masterObjectList = $('#cl-customreport-container').scope().data.masterObjectList;
+                    var masterObjectList = customReportContainer$.scope().data.masterObjectList;
                     if(masterObjectList.length > 1) {
                       var submenuSwitchTable = a.addItem({
                               translation: "library.Visualizations", //"Switch table",
                               tid: "switch-submenu",
                               icon: "icon-cogwheel"
                       });
-                       _.each($('#cl-customreport-container').scope().data.masterObjectList, function(item){
+                       _.each(customReportContainer$.scope().data.masterObjectList, function(item){
                           //console.log(item);
-                          if (item.qInfo.qId !=  $('#cl-customreport-container').scope().data.activeTable.qInfo.qId) {
+                          if (item.qInfo.qId !=  customReportContainer$.scope().data.activeTable.qInfo.qId) {
                               submenuSwitchTable.addItem({
                                   translation: item.qMeta.title,
                                   tid: "switch",
                                   icon: "icon-table",
                                   select: function() {
-                                      $('#cl-customreport-container').scope().data.activeTable = item;
-                                      $('#cl-customreport-container').scope().changeTable();
+                                      customReportContainer$.scope().data.activeTable = item;
+                                      customReportContainer$.scope().changeTable();
                                   }
                               });
                           }
                        });
                     }
                    
-                    var visualScope = $('#cl-customreport-container').scope().report.visualScope;
+                    var visualScope = customReportContainer$.scope().report.visualScope;
                     //var currentObject; // to store original object from scope
                     if(visualScope && visualScope.object && visualScope.object.canShowExploreMenu())
                     a.addItem({
@@ -246,7 +233,7 @@ define([
                         tid: "nav-menu-explore",
                         icon: "icon-control",
                         select: function() {                            
-                            var visualScope = $('#cl-customreport-container').scope().report.visualScope;
+                            var visualScope = customReportContainer$.scope().report.visualScope;
                             var visualObject = visualScope && visualScope.object;
                             if(!visualObject) return;
                             
@@ -256,18 +243,18 @@ define([
                                 visualObject.resize();
                             } else {
                                 // Open exploration menu                                
-                                // TODO ? store original object currentObject = $('#cl-customreport-container').scope().object
+                                // TODO ? store original object currentObject = customReportContainer$.scope().object
                                 // and restore on ... ?
                                  
                                 // isZoomed should be set to be able to show Exploration menu
                                 visualScope.options.zoomEnabled = true;
                                 visualScope.options.isZoomed = true;
                                 if(visualObject) {
-                                    //currentObject = $('#cl-customreport-container').scope().object; // store original object 
-                                    $('#cl-customreport-container').scope().object = visualObject;
+                                    //currentObject = customReportContainer$.scope().object; // store original object 
+                                    customReportContainer$.scope().object = visualObject;
                                     visualObject.toggleExploreMenu(true);
-                                    //$('#cl-customreport-container').scope().object.toggleExploreMenu(true);                                                            
-                                    //$('#cl-customreport-container').scope().object.ext.mappedSoftDefinition = object.ext.mappedSoftDefinition;
+                                    //customReportContainer$.scope().object.toggleExploreMenu(true);                                                            
+                                    //customReportContainer$.scope().object.ext.mappedSoftDefinition = object.ext.mappedSoftDefinition;
                                     visualObject.resize();
                                 }
                                 //}
@@ -286,7 +273,7 @@ define([
                         tid: "export",
                         icon: "icon-toolbar-sharelist",
                         select: function() {
-                            $('#cl-customreport-container').scope().exportData('exportToExcel');
+                            customReportContainer$.scope().exportData('exportToExcel');
                         }
                     }), void e.resolve();
                 });
@@ -295,8 +282,7 @@ define([
             template: ngTemplate,
 
             controller: ['$scope', function($scope) {
-                // console.log('layout', $scope.layout);
-
+                $scope.customReportId = $scope.layout.qInfo.qId;
                 $scope.size = {
                     clientHeight: -1,
                     clientWidth: -1
@@ -309,7 +295,16 @@ define([
                 //$scope.isChangedTable = false;
                 $scope.isShouldCommitChanges = false;
 
-                $scope.data = configData; 
+                $scope.data = {
+                    tag: null,
+                    tagColor: true,
+                    sortOrder: 'SortByA',
+                    activeTable: null,
+                    displayText: 'Custom Report',
+                    masterObjectList: [],
+                    masterDimensions: null,
+                    masterMeasures: null,
+                };
                 // {
                 //     tag: null,
                 //     tagColor: true,
@@ -873,7 +868,7 @@ define([
                         
                         app.visualization.create($scope.report.visualizationType, null, options).then(function(visual) {
                             //$scope.report.tableID = visual.id;
-                            var id = $scope.fieldsAndSortbarVisible ? 'customreporttable' : 'customreporttablezoomed';
+                            var id = ($scope.fieldsAndSortbarVisible ? 'customreporttable' : 'customreporttablezoomed') + $scope.customReportId;
                             visual.show(id);
                             $scope.report.visual = visual;
                             $scope.report.visualScope = $('#'+id).find('.qv-object-content-container').scope();
@@ -889,17 +884,17 @@ define([
 
                 $scope.prepareTable = function(isOmitDeserialization) {
                     var deferred = $q.defer();
-                    $(".rain").show();
+                    $('#cl-customreport-container' + $scope.customReportId + ' .rain').show();
                     $scope.loadActiveTable().then(function() {
                         //$scope.loadState(true)
                         if(!isOmitDeserialization)
                             $scope.deserializeReport({isLoadStateOnly: true}).then(function(){
-                                $(".rain").hide();                                
+                                $('#cl-customreport-container' + $scope.customReportId + ' .rain').hide();                                
                                 deferred.resolve(true);
                                 $scope.showLimits();
                             });
                         else {
-                                $(".rain").hide();
+                                $('#cl-customreport-container' + $scope.customReportId + ' .rain').hide();
                                 deferred.resolve(true);
                         }
                         // $scope.createVisualization().then(function(){
@@ -1422,9 +1417,9 @@ define([
                 $scope.getTableHeight = function() {
                     var labelsAndButtons = 70;
 
-                    $('#reportSortable').height();
+                    //$('#cl-customreport-container' + $scope.customReportId + ' #reportSortable').height();
 
-                    var reportSortableHeight = $('#reportSortable').height();
+                    var reportSortableHeight = $('#cl-customreport-container' + $scope.customReportId + ' #reportSortable').height();
                     if (!$scope.fieldsAndSortbarVisible) {
                         return { "height": $scope.size.clientHeight + "px" }
                     } else {
@@ -1448,13 +1443,13 @@ define([
 
                 initLibraryItems();
                 initMasterItems().then(function(reply) {
-                    var el = document.getElementById('reportSortable');
+                    var el = $('#cl-customreport-container' + $scope.customReportId + ' #reportSortable')[0];
                     sortable.create(el, $scope.reportConfig);
                     $scope.deserializeReport().then($scope.showLimits);
 
-                    $(".rain").hide();
+                    $('#cl-customreport-container' + $scope.customReportId + ' .rain').hide();
                      if(!$scope.fieldsAndSortbarVisible)
-                       $('#cl-customreport-container').parents('.qv-inner-object').css('overflow', 'visible');
+                       $('#cl-customreport-container' + $scope.customReportId).parents('.qv-inner-object').css('overflow', 'visible');
                 });
             }]
         };

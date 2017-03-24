@@ -1,6 +1,6 @@
 <!-- controller.dynic-->
-<div ng-show="!fieldsAndSortbarVisible" id="customreporttablezoomed" style="height: 100%;"></div>
-<div qv-extension id="cl-customreport-container" style="height: 100%; position: relative" ng-class="getClass()">
+<div ng-show="!fieldsAndSortbarVisible" id="{{'customreporttablezoomed' + customReportId}}" style="height: 100%;"></div>
+<div qv-extension id="{{'cl-customreport-container'+ customReportId}}" style="height: 100%; position: relative" ng-class="getClass()">
   <div ng-show="collapsed"><div class="containerlabel"><i style="padding-right: 10px; padding-left: 10px" class="icon-table"></i>{{data.displayText}} </div>
                 </div>
     <div ng-hide="collapsed">
@@ -133,7 +133,7 @@
               class="lui-button--success"
               style="width: 100%; height: 100%">
           </button>
-          <div ng-show="!isShouldCommitChanges" id="customreporttable" class="qv-object" style="overflow: visible" ></div>
+          <div ng-show="!isShouldCommitChanges" id="{{'customreporttable' + customReportId}}" class="qv-object" style="overflow: visible" ></div>
 
         </div>
       </div>
