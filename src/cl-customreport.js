@@ -1085,6 +1085,7 @@ define([
                     $scope.report.usedDimensionsAndMeasures = [];
                     $scope.report.interColumnSortOrder = [];
                     $scope.report.qInterColumnSortOrder = [];
+                    $scope.report.currentState = null;
                     $scope.showLimits();
                     $scope.createChart();
                 }
