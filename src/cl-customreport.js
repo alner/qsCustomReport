@@ -807,7 +807,7 @@ define([
                         */                      
                        // Change dimension and measures order, sorting oder                       
                        // model.getEffectiveProperties().then(function(reply) {
-                       if(model.effectiveProperties.qHyperCubeDef) {
+                       if(model.effectiveProperties && model.effectiveProperties.qHyperCubeDef) {
                             $scope.updateUsedDimensionsMeasures(model.effectiveProperties.qHyperCubeDef);
                             $scope.serializeReport();
                         } else {
