@@ -15,7 +15,7 @@
               <!--label class="containerlabel" for="repeatSelect">Select master object: </label-->
               <lui-select name="mySelect" id="mySelect"
                 ng-change="changeTable()"
-                ng-options="option.qMeta.title for option in data.masterObjectList track by option.qInfo.qId"
+                ng-options="(option.qData.title || option.qMeta.title) for option in data.masterObjectList track by option.qInfo.qId"
               ng-model="data.activeTable"></lui-select>
 
             </form>

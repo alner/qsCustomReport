@@ -157,8 +157,8 @@ define( [
   }
 
   var displayText = {
-
     type: "string",
+    expression: "optional",
     label: "Display text",
     ref: "props.displayText",
     defaultValue: "Custom Report"

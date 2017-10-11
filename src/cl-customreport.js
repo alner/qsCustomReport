@@ -404,7 +404,24 @@ define([
                 function initMasterItems() {
                     var deferred = $q.defer();
 
-                    app.getAppObjectList('masterobject', function(reply) {
+                    //app.getAppObjectList('masterobject', function(reply) {
+                    //app.getList('MasterObject').then(function(reply) {
+                    app.createGenericObject({
+                        qInfo: {
+                            qType:"MasterObject",
+                            qId:"MUMkRcqL"
+                        },
+                        qAppObjectListDef: {
+                            qType:"masterobject",
+                            qData:{ 
+                                name:"/metadata/name",
+                                visualization:"/visualization",
+                                title:"/title",
+                                tags:"/metadata/tags"
+                            }
+                        }
+                    }).then(function(model) {
+                        var reply = model.layout;
                         $scope.data.masterObjectList = _.reduce(reply.qAppObjectList.qItems, function(acc, obj) {
                             //if (obj.qData.visualization == 'table') {
                                 if ($scope.data.tag == 'All tables') {
@@ -536,34 +553,35 @@ define([
                 
                 $scope.getDimensionsProps = function (qDimensions, isSelected) {
                     //var dataId = defaultDataId;
-                    return _.map(qDimensions, function(dimension) {
-                            //dataId = dataId + 1;
-                                                        
-                            if (dimension.qLibraryId) {
-                                var libraryItem = _.find($scope.data.masterDimensions.qItems, function(item) {
-                                    return item.qInfo.qId == dimension.qLibraryId;
-                                });
-                                var libraryDimension = dimension;
-                                libraryDimension.qType = 'dimension';
-                                
-                                return {
-                                    title: libraryItem.qMeta.title,
-                                    description: libraryItem.qMeta.description,
-                                    columnOptions: libraryDimension,
-                                    type: 'dimension',
-                                    selected: isSelected ? true : false,
-                                    dataId: dimension.qLibraryId
-                                };
-                            } else {
-                                return {
-                                    title: dimension.qDef.qFieldLabels[0] == '' ? dimension.qDef.qFieldDefs[0] : dimension.qDef.qFieldLabels[0],
-                                    description: '',
-                                    columnOptions: dimension,
-                                    type: 'dimension',
-                                    selected: isSelected ? true : false,
-                                    dataId: dimension.qDef.cId
-                                };
-                            }
+                    return _.map(qDimensions.dimensionInfos, function(dimensionInfo) {
+                        //dataId = dataId + 1;
+                        var dimension = _.find(qDimensions.dimensionDefs, function(item) {
+                            return item.qDef.cId == dimensionInfo.cId;
+                        });
+                        var dimensionOptions = dimension;
+
+                        if (dimension.qLibraryId) {
+                            dimensionOptions.qType = 'dimension';
+                        }
+                                                    
+                        // if (dimension.qLibraryId) {
+                        //     var libraryItem = _.find($scope.data.masterDimensions.qItems, function(item) {
+                        //         return item.qInfo.qId == dimension.qLibraryId;
+                        //     });
+                        //     dimensionOptions = libraryItem;
+                        //     dimensionOptions.qType = 'dimension';                                
+                        // } else {
+                        //     dimensionOptions = dimension;
+                        // }
+
+                        return {
+                            title: dimensionInfo.qFallbackTitle || (dimension.qDef && dimension.qDef.qFieldLabels[0] == '' ? dimension.qDef.qFieldDefs[0] : dimension.qDef.qFieldLabels[0]),
+                            description: '',
+                            columnOptions: dimensionOptions,
+                            type: 'dimension',
+                            selected: isSelected ? true : false,
+                            dataId: dimension.qLibraryId || dimension.qDef.cId
+                        };
                     });
                     
                     //return dataId;
@@ -571,92 +589,182 @@ define([
                 
                 $scope.getMeasuresProps = function(qMeasures, isSelected){
                     // var dataId = defaultDataId;
-                    return _.map(qMeasures, function(measure) {
+                    return _.map(qMeasures.measureInfos, function(measureInfo) {
                         // dataId = dataId + 1;
+                        var measure = _.find(qMeasures.measureDefs, function(item) {
+                            return item.qDef.cId == measureInfo.cId;
+                        });
+                        var measureOptions = measure;
 
                         if (measure.qLibraryId) {
-                            var libraryItem = _.find($scope.data.masterMeasures.qItems, function(item) {
-                                return item.qInfo.qId == measure.qLibraryId;
-                            });
-
-                            var libraryMeasure = measure;
-                            libraryMeasure.qType = 'measure';
-
-                            return {
-                                title: libraryItem.qMeta.title,
-                                description: libraryItem.qMeta.description,
-                                columnOptions: libraryMeasure,
-                                type: 'measure',
-                                selected: isSelected ? true : false,
-                                dataId: measure.qLibraryId
-                            };
-                            
-                        } else {
-                            return {
-                                title: measure.qDef.qLabel ? measure.qDef.qLabel : measure.qDef.qDef,
-                                description: '',
-                                columnOptions: measure,
-                                type: 'measure',
-                                selected: isSelected ? true : false,
-                                dataId: measure.qDef.cId
-                            };
+                            measureOptions.qType = 'measure';
                         }
+
+                        // if (measure.qLibraryId) {
+                        //     var libraryItem = _.find($scope.data.masterMeasures.qItems, function(item) {
+                        //         return item.qInfo.qId == measure.qLibraryId;
+                        //     });
+
+                        //     measureOptions = libraryItem;
+                        //     measureOptions.qType = 'measure';
+                        // } else {
+                        //     measureOptions = measure;
+                        // }
+
+                        return {
+                            title: measureInfo.qFallbackTitle || (measure.qDef && measure.qDef.qLabel ? measure.qDef.qLabel : measure.qDef.qDef),
+                            description: '',
+                            columnOptions: measureOptions,
+                            type: 'measure',
+                            selected: isSelected ? true : false,
+                            dataId: measure.qLibraryId || measure.qDef.cId
+                        };
                     });
                     
                     // return dataId;
                 }
 
-                $scope.loadActiveTable = function() {
+                $scope.applyDimensionsAndMeasures = function(dimensions, measures) {
+                    $scope.report.dimensions = $scope.data.sortOrder == 'SortByA' ? _.sortBy(dimensions, function(item) {
+                        return item.title;
+                    }) : dimensions;                                
+                    
+                    $scope.report.measures = $scope.data.sortOrder == 'SortByA' ? _.sortBy(measures, function(item) {
+                        return item.title;
+                    }) : measures;
+                } 
+
+                $scope.getDimensionsAndMeasuresFor = function(qId) {
+                    if(!qId) return $q.resolve();
 
                     var deferred = $q.defer();
+                    app.getFullPropertyTree(qId)
+                    .then(function(model) {
+                        model.getLayout().then(function(layout) {
+                            $scope.report.title = layout.title; //model.properties.title;
+                            $scope.report.visualizationType = layout.visualization; //model.properties.visualization;                            
+                            // Dimensions                                
+                            var dimensions = []; // result dimensions array                                                
+                            dimensions = dimensions.concat($scope.getDimensionsProps({
+                                dimensionInfos: layout.qHyperCube.qDimensionInfo,
+                                dimensionDefs: model.propertyTree.qProperty.qHyperCubeDef.qDimensions
+                            }));
 
+                            // Measures
+                            var measures = [];                            
+                            measures = measures.concat($scope.getMeasuresProps({
+                                measureInfos: layout.qHyperCube.qMeasureInfo,
+                                measureDefs: model.propertyTree.qProperty.qHyperCubeDef.qMeasures
+                            }));
+
+                            if(model.propertyTree.qProperty.qHyperCubeDef.qLayoutExclude && 
+                            model.propertyTree.qProperty.qHyperCubeDef.qLayoutExclude.qHyperCubeDef) {
+                                var qExcludedHyperCubeDef = model.propertyTree.qProperty.qHyperCubeDef.qLayoutExclude.qHyperCubeDef; //JSON.parse(JSON.stringify(model.propertyTree.qProperty.qHyperCubeDef.qLayoutExclude.qHyperCubeDef));
+                                qExcludedHyperCubeDef.qCalcCond.qv = '=false()';
+                                app.createCube(qExcludedHyperCubeDef).then(function(reply){
+                                    dimensions = dimensions.concat($scope.getDimensionsProps({
+                                        dimensionInfos: reply.layout.qHyperCube.qDimensionInfo,
+                                        dimensionDefs: qExcludedHyperCubeDef.qDimensions
+                                    }));
+
+                                    measures = measures.concat($scope.getMeasuresProps({
+                                        measureInfos: reply.layout.qHyperCube.qMeasureInfo,
+                                        measureDefs: qExcludedHyperCubeDef.qMeasures
+                                    }));
+
+                                    $scope.applyDimensionsAndMeasures(dimensions, measures);
+                                    deferred.resolve(true);
+                                    app.destroySessionObject(reply.id);
+                                })
+                                .catch(function(err){
+                                    deferred.reject();
+                                });
+                            } else {
+                                $scope.applyDimensionsAndMeasures(dimensions, measures);
+                                deferred.resolve(true);
+                            }
+                        }).catch(function(err){
+                            deferred.reject();
+                        });
+                    }).catch(function(err){
+                        deferred.reject();
+                    });
+
+                    return deferred.promise;
+                }
+
+                $scope.loadActiveTable = function() {
+                    var deferred = $q.defer();
                     // used dimensions and measures for 
                     //$scope.report.usedDimensionsAndMeasures = [];
                     //$scope.createChart();
                     if( $scope.data.activeTable !== null) {
                         setTimeout(function() {
                           if($scope.data.activeTable)
-                            app.getObjectProperties($scope.data.activeTable.qInfo.qId).then(function(model) {
-                                $scope.report.title = model.properties.title;
-                                $scope.report.visualizationType = model.properties.visualization;
-                                
-                                //var dataId = -1;
-                                
-                                // Dimensions                                
-                                var dimensions = []; // result dimensions array
-                                dimensions = dimensions.concat($scope.getDimensionsProps(
-                                    model._properties.qHyperCubeDef.qDimensions
-                                ));
-
-                                // Measures
-                                var measures = [];
-                                measures = measures.concat($scope.getMeasuresProps(
-                                    model._properties.qHyperCubeDef.qMeasures 
-                                ));                                
-                                
-                                
-                                if(model._properties.qHyperCubeDef.qLayoutExclude
-                                && model._properties.qHyperCubeDef.qLayoutExclude.qHyperCubeDef) {
-                                    // "Alternate" dimensions
-                                    dimensions = dimensions.concat($scope.getDimensionsProps(
-                                        model._properties.qHyperCubeDef.qLayoutExclude.qHyperCubeDef.qDimensions
-                                    ));
-                                                                
-                                    // "Alternate" measures
-                                    measures = measures.concat($scope.getMeasuresProps(
-                                        model._properties.qHyperCubeDef.qLayoutExclude.qHyperCubeDef.qMeasures
-                                    ));
-                                }
-                                
-                                $scope.report.dimensions = $scope.data.sortOrder == 'SortByA' ? _.sortBy(dimensions, function(item) {
-                                    return item.title;
-                                }) : dimensions;                                
-                                
-                                $scope.report.measures = $scope.data.sortOrder == 'SortByA' ? _.sortBy(measures, function(item) {
-                                    return item.title;
-                                }) : measures;
+                            //app.getObjectProperties($scope.data.activeTable.qInfo.qId).then(function(model) {
+                            $scope.getDimensionsAndMeasuresFor($scope.data.activeTable.qInfo.qId).then(function(){
                                 deferred.resolve(true);
+                            }).catch(function(err){
+                                deferred.reject();
                             });
+                            /*
+                            app.getFullPropertyTree($scope.data.activeTable.qInfo.qId)
+                            .then(function(model) {
+                                model.getLayout().then(function(layout) {
+                                    $scope.report.title = layout.title; //model.properties.title;
+                                    $scope.report.visualizationType = layout.visualization; //model.properties.visualization;
+                                    
+                                    //var dataId = -1;
+                                    
+                                    // Dimensions                                
+                                    var dimensions = []; // result dimensions array
+                                    dimensions = dimensions.concat($scope.getDimensionsProps(
+                                        //model._properties.qHyperCubeDef.qDimensions
+                                        {
+                                            dimensionInfos: layout.qHyperCube.qDimensionInfo,
+                                            dimensionDefs: model.propertyTree.qProperty.qHyperCubeDef.qDimensions
+                                        }
+                                    ));
+
+                                    // Measures
+                                    var measures = [];
+                                    measures = measures.concat($scope.getMeasuresProps(
+                                        //model._properties.qHyperCubeDef.qMeasures 
+                                        {
+                                            measureInfos: layout.qHyperCube.qMeasureInfo,
+                                            measureDefs: model.propertyTree.qProperty.qHyperCubeDef.qMeasures
+                                        }
+                                    ));
+
+                                    if(model.propertyTree.qProperty.qHyperCubeDef.qLayoutExclude && 
+                                    model.propertyTree.qProperty.qHyperCubeDef.qLayoutExclude.qHyperCubeDef) {
+                                        var qExcludedHyperCubeDef = model.propertyTree.qProperty.qHyperCubeDef.qLayoutExclude.qHyperCubeDef; //JSON.parse(JSON.stringify(model.propertyTree.qProperty.qHyperCubeDef.qLayoutExclude.qHyperCubeDef));
+                                        qExcludedHyperCubeDef.qCalcCond.qv = '=false()';
+                                        app.createCube(qExcludedHyperCubeDef).then(function(reply){
+                                            dimensions = dimensions.concat($scope.getDimensionsProps({
+                                                dimensionInfos: reply.layout.qHyperCube.qDimensionInfo,
+                                                dimensionDefs: qExcludedHyperCubeDef.qDimensions
+                                            }));
+
+                                            measures = measures.concat($scope.getMeasuresProps({
+                                                measureInfos: reply.layout.qHyperCube.qMeasureInfo,
+                                                measureDefs: qExcludedHyperCubeDef.qMeasures
+                                            }));
+
+                                            $scope.applyDimensionsAndMeasures(dimensions, measures);
+                                            deferred.resolve(true);
+                                            app.destroySessionObject(reply.id);
+                                        })
+                                        .catch(function(err){
+                                            deferred.reject(false);
+                                        });
+                                    } else {
+                                        $scope.applyDimensionsAndMeasures(dimensions, measures);
+                                        deferred.resolve(true);                                        
+                                    }                                                                        
+                                });
+                            });
+                            */
                         }, 500);
                     } else {
                         deferred.resolve(false);
@@ -739,15 +847,21 @@ define([
                   //$scope.deserializeReport({isLoadStateOnly: false, qId: $scope.data.activeTable.qInfo.qId});
                 }
 
-                $scope.updateUsedDimensionsMeasures = function(qHyperCubeDef) {
+                $scope.updateUsedDimensionsMeasures = function(qHyperCubeDef, qHyperCube) {
                     var usedDimensionsAndMeasures = [];
                     usedDimensionsAndMeasures = usedDimensionsAndMeasures.concat($scope.getDimensionsProps(
-                        qHyperCubeDef.qDimensions,
+                        {
+                            dimensionInfos: qHyperCube.qDimensionInfo,
+                            dimensionDefs: qHyperCubeDef.qDimensions
+                        },
                         true // all dimensions selected
                     ));
 
                     usedDimensionsAndMeasures = usedDimensionsAndMeasures.concat($scope.getMeasuresProps(
-                        qHyperCubeDef.qMeasures,
+                        {
+                            measureInfos: qHyperCube.qMeasureInfo,
+                            measureDefs: qHyperCubeDef.qMeasures
+                        },
                         true // all measures selected
                     ));
 
@@ -805,20 +919,22 @@ define([
                                     usedDimensionsAndMeasures.push(itemToMove);                            
                             });
                         */                      
-                       // Change dimension and measures order, sorting oder                       
-                       // model.getEffectiveProperties().then(function(reply) {
-                       if(model.effectiveProperties && model.effectiveProperties.qHyperCubeDef) {
-                            $scope.updateUsedDimensionsMeasures(model.effectiveProperties.qHyperCubeDef);
-                            $scope.serializeReport();
-                        } else {
-                            model.getEffectiveProperties().then(function(reply){
-                                if($scope.report.visual
-                                && $scope.report.visualizationType === reply.visualization) {
-                                    $scope.updateUsedDimensionsMeasures(reply.qHyperCubeDef);
-                                    $scope.serializeReport();
-                                }
-                            });
-                        }
+                       // Change dimension and measures order, sorting oder
+                       $scope.getDimensionsAndMeasuresFor($scope.data.activeTable && $scope.data.activeTable.qInfo.qId).then(function(){
+                            // model.getEffectiveProperties().then(function(reply) {
+                            if(model.effectiveProperties && model.effectiveProperties.qHyperCubeDef) {
+                                $scope.updateUsedDimensionsMeasures(model.effectiveProperties.qHyperCubeDef, model.layout.qHyperCube);
+                                $scope.serializeReport();
+                            } else {
+                                model.getEffectiveProperties().then(function(reply){
+                                    if($scope.report.visual
+                                    && $scope.report.visualizationType === reply.visualization) {
+                                        $scope.updateUsedDimensionsMeasures(reply.qHyperCubeDef, model.layout.qHyperCube);
+                                        $scope.serializeReport();
+                                    }
+                                });
+                            }
+                        });                        
                   //}                  
                 }
 
@@ -1248,6 +1364,8 @@ define([
                                     } else {
                                         app.variable.create({qName: variableName, qDefinition: dataToStore, qIncludeInBookmark: true});
                                     }
+                                }).catch(function(){
+                                    app.variable.create({qName: variableName, qDefinition: dataToStore, qIncludeInBookmark: true});
                                 });
                         }
                         //}
