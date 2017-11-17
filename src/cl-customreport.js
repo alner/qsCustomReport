@@ -442,6 +442,8 @@ define([
                         if(!$scope.data.activeTable && $scope.data.masterObjectList.length > 0)
                             $scope.data.activeTable = $scope.data.masterObjectList[0];
 
+                        app.destroySessionObject(model.id);
+
                         deferred.resolve(true);
                     });
                     return deferred.promise;
