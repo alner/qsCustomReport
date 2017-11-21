@@ -5,11 +5,14 @@
                 </div>
     <div ng-hide="collapsed">
         <div ng-show="fieldsAndSortbarVisible" class='container_left' ng-style="getContainerWidth('left')">
-        <div class="bootstrap" style="margin-right: 12px;"">
+        <div class="bootstrap" style="margin-right: 12px;">
           <!--lui-button  ng-click="exportData('exportToExcel')" title='Export to Excel' ><i class="icon-toolbar-sharelist"> Excel</i></lui-button-->
 
           <div ng-show="isShowMasterObjectList" class="form-group">
-              <div class="containerlabel" q-translation="library.Visualizations"></div>
+            <div class="containerlabel" ng-if="data.vizualizationsLabel">
+                {{data.vizualizationsLabel}}
+            </div>
+            <div class="containerlabel" ng-if="!data.vizualizationsLabel" q-translation="library.Visualizations"></div>
 
             <form name="myForm">
               <!--label class="containerlabel" for="repeatSelect">Select master object: </label-->
@@ -22,7 +25,9 @@
           </div>
 
             <div class="containerlabel">
-                <span q-translation="Common.Dimensions"></span>
+                <!--  -->
+                <span ng-if="data.dimensionsLabel">{{data.dimensionsLabel}}</span>
+                <span ng-if="!data.dimensionsLabel" q-translation="Common.Dimensions"></span>
                 <!--span class="lui-text-default" q-translation="properties.dimensionLimits.limitation"></span-->
                 <span ng-show="report.limits.dimensions > 0">{{report.selections.dimension}} / {{report.limits.dimensions}}</span>
             </div>            
@@ -39,7 +44,8 @@
             </ul>
             
           <div class="containerlabel"> <!-- ng-show="isUpdateRights" -->
-            <span q-translation="Common.Measures"></span>
+            <span ng-if="data.measuresLabel">{{data.measuresLabel}}</span>
+            <span ng-if="!data.measuresLabel" q-translation="Common.Measures"></span>
             <!--span class="lui-text-default" q-translation="properties.dimensionLimits.limitation"></span-->
             <span ng-show="report.limits.measures > 0" >{{report.selections.measure}} / {{report.limits.measures}}</span>
           </div>

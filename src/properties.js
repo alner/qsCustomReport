@@ -162,7 +162,30 @@ define( [
     label: "Display text",
     ref: "props.displayText",
     defaultValue: "Custom Report"
+  }
 
+  var VisualizationLabel = {
+    type: "string",
+    expression: "optional",
+    label: "Visualizations Label",
+    ref: "props.vizualizationsLabel",
+    defaultValue: "Visualizations"
+  }
+
+  var DimensionsLabel = {
+    type: "string",
+    expression: "optional",
+    label: "Dimensions Label",
+    ref: "props.dimensionsLabel",
+    defaultValue: "Dimensions"
+  }
+
+  var MeasuresLabel = {
+    type: "string",
+    expression: "optional",
+    label: "Measures Label",
+    ref: "props.measuresLabel",
+    defaultValue: "Measures"
   }
 
   // ****************************************************************************************
@@ -183,7 +206,10 @@ define( [
           allowCollapse: allowCollapse,
           collapseMinWidth: collapseMinWidth,
           collapseMinHeight: collapseMinHeight,
-          displayText: displayText
+          displayText: displayText,
+          vizualizationsLabel: VisualizationLabel,
+          dimensionsLabel: DimensionsLabel,
+          measuresLabel: MeasuresLabel,
         }
       }
     }

@@ -301,6 +301,9 @@ define([
                     sortOrder: 'SortByA',
                     activeTable: null,
                     displayText: 'Custom Report',
+                    vizualizationsLabel: $scope.layout.props.visualizationsLabel,
+                    dimensionsLabel: $scope.layout.props.dimensionsLabel,
+                    measuresLabel: $scope.layout.props.measuresLabel,
                     masterObjectList: [],
                     masterDimensions: null,
                     masterMeasures: null,
@@ -1503,6 +1506,18 @@ define([
                 $scope.$watchCollection('layout.props.displayText', function(newText) {
                     $scope.data.displayText = newText;
                 });
+
+                $scope.$watchCollection('layout.props.vizualizationsLabel', function(newText) {
+                    $scope.data.vizualizationsLabel = newText;
+                });
+
+                $scope.$watchCollection('layout.props.dimensionsLabel', function(newText) {
+                    $scope.data.dimensionsLabel = newText;
+                });
+
+                $scope.$watchCollection('layout.props.measuresLabel', function(newText) {
+                    $scope.data.measuresLabel = newText;
+                });                
 
                 $scope.$watchCollection('layout.props.dimensionSortOrder', function(newStyle) {
                     $scope.data.sortOrder = newStyle;
