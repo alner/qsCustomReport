@@ -307,6 +307,7 @@ define([
                     masterObjectList: [],
                     masterDimensions: null,
                     masterMeasures: null,
+                    user: '',
                 };
                 // {
                 //     tag: null,
@@ -423,8 +424,12 @@ define([
                                 tags:"/metadata/tags"
                             }
                         }
+                        // user: {
+                        //     qStringExpression: "=PurgeChar(replace(replace(osuser( ), ';', '_'), '=', '_'), ' ''')"
+                        // },
                     }).then(function(model) {
                         var reply = model.layout;
+                        //$scope.data.user = reply.user;
                         $scope.data.masterObjectList = _.reduce(reply.qAppObjectList.qItems, function(acc, obj) {
                             //if (obj.qData.visualization == 'table') {
                                 if ($scope.data.tag == 'All tables') {
@@ -1361,16 +1366,23 @@ define([
                         if($scope.report.currentState != dataToStore) {
                             $scope.report.currentState = dataToStore;
 
-                            var variableName = $scope.layout.props.variable;
+                            var variableName = $scope.layout.props.variable; // + $scope.data.user;
                             if(variableName)
                                 app.variable.getByName(variableName).then(function(varModel){
+                                    //console.log('varModel', varModel);
                                     if(varModel) {
-                                        varModel.setProperties({qName: variableName, qDefinition: dataToStore, qIncludeInBookmark: true});
+                                        varModel.setStringValue(dataToStore);
+                                        //varModel.setProperties({qInfo: {qType: "variable"}, qMeta: {privileges: ["read", "update"]}, qName: variableName, qDefinition: dataToStore, qIncludeInBookmark: true});
+                                        // varModel.applyPatches({
+                                        //     qPath: "/qDefinition",
+                                        //     qOp: "replace",
+                                        //     qValue: '1'
+                                        // }, true);
                                     } else {
-                                        app.variable.create({qName: variableName, qDefinition: dataToStore, qIncludeInBookmark: true});
+                                        app.variable.createSessionVariable({qInfo: {qType: "variable"}, qMeta: {privileges: ["read", "update"]}, qName: variableName, qDefinition: dataToStore, qIncludeInBookmark: true});
                                     }
                                 }).catch(function(){
-                                    app.variable.create({qName: variableName, qDefinition: dataToStore, qIncludeInBookmark: true});
+                                    app.variable.createSessionVariable({qInfo: {qType: "variable"}, qMeta: {privileges: ["read", "update"]}, qName: variableName, qDefinition: dataToStore, qIncludeInBookmark: true});
                                 });
                         }
                         //}

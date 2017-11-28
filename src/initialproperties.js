@@ -10,7 +10,7 @@ define( [], function () {
             tagColor: true,
             sortOrder: "SortByA",
             constraints: []
-        },        
+        },
         /*
         qHyperCubeDef: {
             qDimensions: [],
