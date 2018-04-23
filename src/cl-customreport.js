@@ -992,7 +992,7 @@ define([
                         options.title = $scope.report.title == '' ? $scope.data.activeTable.qMeta.title : $scope.report.title;
                         options.qHyperCubeDef = HyperCubeDef;
                         
-                        app.visualization.create($scope.report.visualizationType, null, options).then(function(visual) {
+                        app.visualization.create($scope.report.visualizationType, [], options).then(function(visual) {
                             //$scope.report.tableID = visual.id;
                             var id = ($scope.fieldsAndSortbarVisible ? 'customreporttable' : 'customreporttablezoomed') + $scope.customReportId;
                             visual.show(id);
