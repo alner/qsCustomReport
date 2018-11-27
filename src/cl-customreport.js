@@ -292,7 +292,6 @@ define([
                 $scope.collapsed = false;
                 $scope.minWidthCollapsed = 200;
                 $scope.minHeightCollapsed = 200;
-                //$scope.isChangedTable = false;
                 $scope.isShouldCommitChanges = false;
 
                 $scope.data = {
@@ -376,7 +375,8 @@ define([
                 };
 
                 $scope.isInitialized = function(){
-                  return $scope.data.masterMeasures &&
+                  return //!$scope.report.isInitializing && 
+                  $scope.data.masterMeasures &&
                     $scope.data.masterDimensions &&
                     $scope.data.masterObjectList.length > 0;
                 }
@@ -413,7 +413,7 @@ define([
                     app.createGenericObject({
                         qInfo: {
                             qType:"MasterObject",
-                            qId:"MUMkRcqL"
+                            // qId:"MUMkRcqL"
                         },
                         qAppObjectListDef: {
                             qType:"masterobject",
@@ -421,6 +421,7 @@ define([
                                 name:"/metadata/name",
                                 visualization:"/visualization",
                                 title:"/title",
+                                labelExpression: "/labelExpression",
                                 tags:"/metadata/tags"
                             }
                         }
@@ -446,7 +447,6 @@ define([
                             return acc;
                         }, []);
                         $scope.isShowMasterObjectList = $scope.data.masterObjectList.length > 1;
-
                         if(!$scope.data.activeTable && $scope.data.masterObjectList.length > 0)
                             $scope.data.activeTable = $scope.data.masterObjectList[0];
 
@@ -651,6 +651,7 @@ define([
                     app.getFullPropertyTree(qId)
                     .then(function(model) {
                         model.getLayout().then(function(layout) {
+                            $scope.report.model = model;
                             $scope.report.title = layout.title; //model.properties.title;
                             $scope.report.visualizationType = layout.visualization; //model.properties.visualization;                            
                             // Dimensions                                
@@ -666,7 +667,7 @@ define([
                                 measureInfos: layout.qHyperCube.qMeasureInfo,
                                 measureDefs: model.propertyTree.qProperty.qHyperCubeDef.qMeasures
                             }));
-
+                            
                             if(model.propertyTree.qProperty.qHyperCubeDef.qLayoutExclude && 
                             model.propertyTree.qProperty.qHyperCubeDef.qLayoutExclude.qHyperCubeDef) {
                                 var qExcludedHyperCubeDef = model.propertyTree.qProperty.qHyperCubeDef.qLayoutExclude.qHyperCubeDef; //JSON.parse(JSON.stringify(model.propertyTree.qProperty.qHyperCubeDef.qLayoutExclude.qHyperCubeDef));
@@ -681,7 +682,6 @@ define([
                                         measureInfos: reply.layout.qHyperCube.qMeasureInfo,
                                         measureDefs: qExcludedHyperCubeDef.qMeasures
                                     }));
-
                                     $scope.applyDimensionsAndMeasures(dimensions, measures);
                                     deferred.resolve(true);
                                     app.destroySessionObject(reply.id);
@@ -840,6 +840,7 @@ define([
                 }
 
                 $scope.changeTable = function() {
+                  var deferred = $q.defer();
                   if($scope.data.activeTable) {
                         //$scope.isChangedTable = true;
                         $scope.isShouldCommitChanges = false;
@@ -849,12 +850,16 @@ define([
                             $scope.deserializeReport({
                                 isLoadStateOnly: true,
                                 qId: $scope.data.activeTable.qInfo.qId
-                            }).then($scope.showLimits);
-
-                        });                        
+                            }).then(function(){
+                                deferred.resolve(true);
+                                $scope.showLimits();
+                            });
+                        });
                   }
+                  deferred.resolve(true);
                   //$scope.prepareTable();
                   //$scope.deserializeReport({isLoadStateOnly: false, qId: $scope.data.activeTable.qInfo.qId});
+                  return deferred.promise;
                 }
 
                 $scope.updateUsedDimensionsMeasures = function(qHyperCubeDef, qHyperCube) {
@@ -944,7 +949,7 @@ define([
                                     }
                                 });
                             }
-                        });                        
+                        });
                   //}                  
                 }
 
@@ -1154,6 +1159,13 @@ define([
                     //if ($scope.report.tableID != '') {
                     //if ($scope.report.usedDimensionsAndMeasures.length > 0) {
                       $scope.createVisualization().then(function AfterCreateVisualization(){
+                        // Update used dimensions and measures !
+                        if($scope.report.model)
+                            $scope.updateUsedDimensionsMeasures(
+                                $scope.report.model.propertyTree.qProperty.qHyperCubeDef,
+                                $scope.report.visual.model.layout.qHyperCube
+                            );
+
                         $scope.serializeReport();
                       });
                       //$(".rain").hide();
@@ -1521,6 +1533,13 @@ define([
 
                 $scope.$watchCollection('layout.props.vizualizationsLabel', function(newText) {
                     $scope.data.vizualizationsLabel = newText;
+                    // $scope.clearAll();
+                    // $scope.report.isInitializing = true;
+                    initMasterItems().then(function(){
+                        $scope.report.currentState = null;
+                        // $scope.changeTable();
+                        $scope.deserializeReport();
+                    });
                 });
 
                 $scope.$watchCollection('layout.props.dimensionsLabel', function(newText) {
