@@ -1,6 +1,6 @@
 <!-- controller.dynic-->
 <div ng-show="!fieldsAndSortbarVisible" id="{{'customreporttablezoomed' + customReportId}}" style="height: 100%;"></div>
-<div qv-extension id="{{'cl-customreport-container'+ customReportId}}" style="height: 100%; position: relative" ng-class="getClass()">
+<div qv-extension id="{{'cl-customreport-container'+ customReportId}}" style="height: 100%; position: relative" ng-class="getClass()" ng-mousedown="onClick($event)">
   <div ng-show="collapsed"><div class="containerlabel"><i style="padding-right: 10px; padding-left: 10px" class="icon-table"></i>{{data.displayText}} </div>
                 </div>
     <div ng-hide="collapsed">
@@ -64,7 +64,9 @@
         <div ng-show="fieldsAndSortbarVisible" class="bootstrap">
           <div class="containerlabel">{{data.displayText}} 
               <i style="padding-right: 10px" q-title-translation="Tooltip.ClearSelections" class="icon-toolbar-clearselections" ng-click="clearAll()" ng-class="report.usedDimensionsAndMeasures.length == 0 ? 'disabled': ''"></i>
-              <i q-title-translation="AppOverview.Expand" class="icon-maximize" ng-click="hideFieldAndSortbar()"></i>
+              <i style="padding-right: 10px" q-title-translation="AppOverview.Expand" class="icon-maximize" ng-click="hideFieldAndSortbar()"></i>
+			  <i style="padding-right: 10px" q-title-translation="contextMenu.export" class="icon-toolbar-sharelist" ng-click="exportData('exportToExcel')"></i>
+			  
           </div>
           <ul id='reportSortable' ng-class="{plain:!data.tagColor}" class="sortablelist" >
             <li ng-class="item.type=='dimension' ? 'label-dimension' : 'label-measure'" title="{{item.title +'\n' + item.description}}" ng-repeat="item in report.usedDimensionsAndMeasures">

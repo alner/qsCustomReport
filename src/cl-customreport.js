@@ -2,6 +2,7 @@ define([
         'jquery',
         'underscore',
         'qlik',
+		'qvangular',
         'ng!$q',
         'ng!$http',
         './properties',
@@ -12,7 +13,7 @@ define([
         'text!./lib/css/style.css',
         'text!./lib/partials/customreport.ng.html',
     ],
-    function($, _, qlik, $q, $http, props, initProps, stateUtil, extensionUtils, sortable, cssContent, ngTemplate) {
+    function($, _, qlik, qvangular, $q, $http, props, initProps, stateUtil, extensionUtils, sortable, cssContent, ngTemplate) {
         'use strict';
 
         extensionUtils.addStyleToHeader(cssContent);
@@ -23,7 +24,8 @@ define([
             initialProperties: initProps,
             support: {
                 snapshot: true,
-                export: false
+                export: false,
+				exportData: true
             },
 
             resize: function($element, layout) {
@@ -57,7 +59,7 @@ define([
                 }
                 //});
             },
-
+			
             getExportRawDataOptions: function(a, c, e) {
                 var customReportContainer$ = $('#cl-customreport-container' + c.id);
                 c.getVisualization().then(function(visualization) {
@@ -268,14 +270,27 @@ define([
                     });
 
 
-                    return a.addItem({
+                    a.addItem({
                         translation: "contextMenu.export",
                         tid: "export",
                         icon: "icon-toolbar-sharelist",
                         select: function() {
                             customReportContainer$.scope().exportData('exportToExcel');
                         }
-                    }), void e.resolve();
+                    });
+					
+
+					var e = customReportContainer$.scope().clickEvent;
+					if(e) {
+						var exs = qvangular.getService("qvContextMenu");
+						exs.show(a, {
+							position: {
+								x: e.pageX,
+								y: e.pageY,
+							},
+							//docking: "Top"
+						});
+					}
                 });
             },
 
@@ -373,6 +388,10 @@ define([
                         $scope.createChart();
                     },
                 };
+				
+				$scope.onClick = function(e) {
+					$scope.clickEvent = e;
+				};
 
                 $scope.isInitialized = function(){
                   return //!$scope.report.isInitializing && 
