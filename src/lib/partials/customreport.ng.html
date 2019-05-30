@@ -1,4 +1,3 @@
-<!-- controller.dynic-->
 <div ng-show="!fieldsAndSortbarVisible" id="{{'customreporttablezoomed' + customReportId}}" style="height: 100%;"></div>
 <div qv-extension id="{{'cl-customreport-container'+ customReportId}}" style="height: 100%; position: relative" ng-class="getClass()" ng-mousedown="onClick($event)">
   <div ng-show="collapsed"><div class="containerlabel"><i style="padding-right: 10px; padding-left: 10px" class="icon-table"></i>{{data.displayText}} </div>
@@ -63,14 +62,13 @@
       <div class='container_right' ng-style="getContainerWidth('right')">
         <div ng-show="fieldsAndSortbarVisible" class="bootstrap">
           <div class="containerlabel">{{data.displayText}} 
-              <i style="padding-right: 10px" q-title-translation="Tooltip.ClearSelections" class="icon-toolbar-clearselections" ng-click="clearAll()" ng-class="report.usedDimensionsAndMeasures.length == 0 ? 'disabled': ''"></i>
-              <i style="padding-right: 10px" q-title-translation="AppOverview.Expand" class="icon-maximize" ng-click="hideFieldAndSortbar()"></i>
-			  <i style="padding-right: 10px" q-title-translation="contextMenu.export" class="icon-toolbar-sharelist" ng-click="exportData('exportToExcel')"></i>
-			  
+              <span style="padding: 0 10px" q-title-translation="Tooltip.ClearSelections" class="lui-icon lui-icon--clear-selections" ng-click="clearAll()" ng-class="report.usedDimensionsAndMeasures.length == 0 ? 'disabled': ''"></span>
+              <span style="padding-right: 10px" q-title-translation="AppOverview.Expand" class="lui-icon lui-icon--expand" ng-click="hideFieldAndSortbar()"></span>
+			  <span style="padding-right: 10px" q-title-translation="contextMenu.export" class="lui-icon lui-icon--export" ng-click="exportData('exportToExcel')"></span>			  
           </div>
           <ul id='reportSortable' ng-class="{plain:!data.tagColor}" class="sortablelist" >
             <li ng-class="item.type=='dimension' ? 'label-dimension' : 'label-measure'" title="{{item.title +'\n' + item.description}}" ng-repeat="item in report.usedDimensionsAndMeasures">
-              <div>{{item.title}}</div><span class="icon-vtabs-delete" ng-click="removeItem(item)"></span>
+              <div>{{item.title}}</div><span class="lui-icon lui-icon--small lui-icon--remove" ng-click="removeItem(item)"></span>
 
             </li>
           </ul>
