@@ -227,6 +227,7 @@ define([
                        });
                     }
                    
+				   /*
                     var visualScope = customReportContainer$.scope().report.visualScope;
                     //var currentObject; // to store original object from scope
                     if(visualScope && visualScope.object && visualScope.object.canShowExploreMenu())
@@ -268,6 +269,7 @@ define([
                             }
                         }
                     });
+					*/
 
 
                     a.addItem({

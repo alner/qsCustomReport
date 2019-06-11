@@ -5,6 +5,6 @@
 	"type" : "visualization",
 	"version": "@@version",
 	"preview" : "customreport.png",
-	"author": "Karl Fredberg Sjöstrand (initial release), Alner(improvements)",
+	"author": "Karl Fredberg Sjöstrand (initial release), Alner(fork)",
 	"dependencies" : { "qlik-sense" : ">=3.0.x" }
 }
