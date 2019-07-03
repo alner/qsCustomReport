@@ -38,7 +38,7 @@
                     ng-click="selectItem(dimension)" 
                     title="{{dimension.title +'\n' + dimension.description}}"  
                     ng-repeat="dimension in report.dimensions">
-                <div class="cr-lui-list__text">{{dimension.title}}</div><div class="icon-tick lui-icon" ng-if="dimension.selected"></div>
+                <div class="cr-lui-list__text">{{dimension.title}}</div><div class="lui-icon--tick lui-icon" ng-if="dimension.selected"></div>
                 </li>
             </ul>
             
