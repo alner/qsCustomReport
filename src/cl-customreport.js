@@ -211,6 +211,7 @@ define([
                               tid: "switch-submenu",
                               icon: "icon-cogwheel"
                       });
+                      console.log(customReportContainer$.scope().data.masterObjectList);
                        _.each(customReportContainer$.scope().data.masterObjectList, function(item){
                           //console.log(item);
                           if (item.qInfo.qId !=  customReportContainer$.scope().data.activeTable.qInfo.qId) {
