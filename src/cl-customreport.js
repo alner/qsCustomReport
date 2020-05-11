@@ -676,6 +676,11 @@ define([
                             $scope.report.model = model;
                             $scope.report.title = layout.title; //model.properties.title;
                             $scope.report.visualizationType = layout.visualization; //model.properties.visualization;                            
+                            if(layout.totals) {
+                                $scope.report.totals = layout.totals;
+                            } else {
+                                $scope.report.totals = null;
+                            }
                             // Dimensions                                
                             var dimensions = []; // result dimensions array                                                
                             dimensions = dimensions.concat($scope.getDimensionsProps({
@@ -1018,6 +1023,8 @@ define([
                         }                        
                         options.title = $scope.report.title == '' ? $scope.data.activeTable.qMeta.title : $scope.report.title;
                         options.qHyperCubeDef = HyperCubeDef;
+                        if($scope.report.totals)
+                            options.totals = $scope.report.totals;
                         
                         app.visualization.create($scope.report.visualizationType, [], options).then(function(visual) {
                             //$scope.report.tableID = visual.id;

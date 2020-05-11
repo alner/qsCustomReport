@@ -29,6 +29,7 @@ x64/
 [Oo]bj/
 dist/
 dist_dev/
+build/*.zip
 
 # MSTest test Results
 [Tt]est[Rr]esult*/
