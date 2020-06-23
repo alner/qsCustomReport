@@ -1412,7 +1412,9 @@ define([
                                 app.variable.getByName(variableName).then(function(varModel){
                                     //console.log('varModel', varModel);
                                     if(varModel) {
-                                        varModel.setStringValue(dataToStore);
+                                        requestAnimationFrame(function () {
+                                            varModel.setStringValue(dataToStore);
+                                        });
                                         //varModel.setProperties({qInfo: {qType: "variable"}, qMeta: {privileges: ["read", "update"]}, qName: variableName, qDefinition: dataToStore, qIncludeInBookmark: true});
                                         // varModel.applyPatches({
                                         //     qPath: "/qDefinition",
