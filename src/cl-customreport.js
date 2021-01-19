@@ -380,6 +380,7 @@ define([
                     layout: null,
                     dimensions: [],
                     measures: [],
+                    suppressZero: false,
                     interColumnSortOrder: [],
                     columnOrder: [],
                     NoOfLeftDims: null,
@@ -447,6 +448,10 @@ define([
                          if ($scope.collapsed) {
                             $scope.collapsed = false;
                             $scope.createChart();
+                        } else {
+                            $scope.deserializeReport().then(function(){
+                                $scope.showLimits();
+                            });                            
                         }
                     }
                 }
@@ -605,7 +610,8 @@ define([
                         columnWidths: columnWidths,
                         qInterColumnSortOrder: report && report.qInterColumnSortOrder,
                         interColumnSortOrder: report && report.interColumnSortOrder,
-                        qNoOfLeftDims: (report && report.NoOfLeftDims) || $scope.report.NoOfLeftDims || dimensions.length
+                        qNoOfLeftDims: (report && report.NoOfLeftDims) || $scope.report.NoOfLeftDims || dimensions.length,
+                        qSuppressZero: report && report.suppressZero
                       });
                   });
 
@@ -685,7 +691,7 @@ define([
                     // return dataId;
                 }
 
-                $scope.applyDimensionsAndMeasures = function(dimensions, measures) {
+                $scope.applyDimensionsAndMeasures = function(dimensions, measures, suppressZero) {
                     var dims = $scope.data.sortOrder == 'SortByA' ? _.sortBy(dimensions, function(item) {
                         return item.title;
                     }) : dimensions;                                
@@ -711,6 +717,7 @@ define([
 
                     $scope.report.dimensions = dims;
                     $scope.report.measures = meas;
+                    $scope.report.suppressZero = suppressZero;
                 } 
 
                 $scope.getDimensionsAndMeasuresFor = function(qId) {
@@ -741,6 +748,8 @@ define([
                                 measureInfos: layout.qHyperCube.qMeasureInfo,
                                 measureDefs: model.propertyTree.qProperty.qHyperCubeDef.qMeasures
                             }));
+
+                            var suppressZero = model.propertyTree.qProperty.qHyperCubeDef.qSuppressZero;
                             
                             if(model.propertyTree.qProperty.qHyperCubeDef.qLayoutExclude && 
                             model.propertyTree.qProperty.qHyperCubeDef.qLayoutExclude.qHyperCubeDef) {
@@ -756,7 +765,7 @@ define([
                                         measureInfos: reply.layout.qHyperCube.qMeasureInfo,
                                         measureDefs: qExcludedHyperCubeDef.qMeasures
                                     }));
-                                    $scope.applyDimensionsAndMeasures(dimensions, measures);
+                                    $scope.applyDimensionsAndMeasures(dimensions, measures, suppressZero);
                                     deferred.resolve(true);
                                     app.destroySessionObject(reply.id);
                                 })
@@ -764,7 +773,7 @@ define([
                                     deferred.reject();
                                 });
                             } else {
-                                $scope.applyDimensionsAndMeasures(dimensions, measures);
+                                $scope.applyDimensionsAndMeasures(dimensions, measures, suppressZero);
                                 deferred.resolve(true);
                             }
                         }).catch(function(err){
@@ -1050,7 +1059,8 @@ define([
                         var HyperCubeDef = {
                           qDimensions: data.dimensions,
                           qMeasures: data.measures,
-                          columnWidths: data.columnWidths
+                          columnWidths: data.columnWidths,
+                          qSuppressZero: data.qSuppressZero
                         };
 
                         if($scope.report.visualizationType === 'table'
