@@ -393,7 +393,8 @@ define([
                     selections: {
                         dimension: 0, // count of selected dimensions
                         measure: 0 // count of selected measures
-                    }
+                    },
+                    dimVariableCreated: false,                    
                 };
 
                 var dragoverHandler = function(event) {
@@ -1048,53 +1049,83 @@ define([
 
                 $scope.createVisualization = function() {
                   var deferred = $q.defer();
+                  var layout = $scope.layout;
+                  console.log('Layout', layout);
 
                   $scope.closeVisualization();
 
-                  getObjectProperties().then(function(data){
-                    //console.log('createVisualization DATA', data, $scope.report.visualization);
-                    if($scope.report.visualizationType
-                    && data.dimensions.length > 0
-                    && data.measures.length > 0) {
-                        var HyperCubeDef = {
-                          qDimensions: data.dimensions,
-                          qMeasures: data.measures,
-                          columnWidths: data.columnWidths,
-                          qSuppressZero: data.qSuppressZero
-                        };
+                  var promises = [];
+                  var dimVar = layout.props.dimVariable;
+                  var measVar = layout.props.measuresVariable;
+                  if(dimVar || measVar) {
+                      var dims = [];
+                      var meas = [];
+                      $scope.report.usedDimensionsAndMeasures.forEach(function (item) {
+                          if(dimVar && item.type == 'dimension') {
+                              dims.push('"' + item.title + '"');
+                          } 
+                          else if(measVar && item.type == 'measure') {
+                              meas.push('"' + item.title + '"');
+                          }
+                      });
 
-                        if($scope.report.visualizationType === 'table'
-                        && data.columnOrder && data.columnOrder.length > 0)
-                          HyperCubeDef.columnOrder= data.columnOrder;
+                      if(dims.length > 0)
+                        promises.push(updateVariable(dimVar, dims.join(','), false));
 
-                        if($scope.report.visualizationType === 'pivot-table'
-                        && !isNaN(data.qNoOfLeftDims))
-                          HyperCubeDef.qNoOfLeftDims = data.qNoOfLeftDims;
+                      if(meas.length > 0)
+                        promises.push(updateVariable(measVar, meas.join(','), false));
+                  }
 
-                        if(data.qInterColumnSortOrder && data.qInterColumnSortOrder.length > 0)
-                          HyperCubeDef.qInterColumnSortOrder = data.qInterColumnSortOrder;
+                  if(layout.props.measuresVariable) {
+                      var meas = [];
+                  }
 
-                        //console.log('HyperCubeDef ', HyperCubeDef);
-                        var options = {};                         
-                        if($scope.report.layout) {
-                         options = _.extend(options, $scope.report.layout);    
-                        }                        
-                        options.title = $scope.report.title == '' ? $scope.data.activeTable.qMeta.title : $scope.report.title;
-                        options.qHyperCubeDef = HyperCubeDef;
-                        if($scope.report.totals)
-                            options.totals = $scope.report.totals;
-                        
-                        app.visualization.create($scope.report.visualizationType, [], options).then(function(visual) {
-                            //$scope.report.tableID = visual.id;
-                            var id = ($scope.fieldsAndSortbarVisible ? 'customreporttable' : 'customreporttablezoomed') + $scope.customReportId;
-                            visual.show(id);
-                            $scope.report.visual = visual;
-                            $scope.report.visualScope = $('#'+id).find('.qv-object-content-container').scope();
-                            // Invalidated
-                            $scope.report.visual.model.Validated.bind($scope.visualizationChanged);
-                            deferred.resolve(true);
-                        });
-                    }
+                  Promise.all(promises).then(function() {
+                    getObjectProperties().then(function(data){
+                        //console.log('createVisualization DATA', data, $scope.report.visualization);
+                        if($scope.report.visualizationType
+                        && data.dimensions.length > 0
+                        && data.measures.length > 0) {
+                            var HyperCubeDef = {
+                            qDimensions: data.dimensions,
+                            qMeasures: data.measures,
+                            columnWidths: data.columnWidths,
+                            qSuppressZero: data.qSuppressZero
+                            };                        
+
+                            if($scope.report.visualizationType === 'table'
+                            && data.columnOrder && data.columnOrder.length > 0)
+                            HyperCubeDef.columnOrder= data.columnOrder;
+
+                            if($scope.report.visualizationType === 'pivot-table'
+                            && !isNaN(data.qNoOfLeftDims))
+                            HyperCubeDef.qNoOfLeftDims = data.qNoOfLeftDims;
+
+                            if(data.qInterColumnSortOrder && data.qInterColumnSortOrder.length > 0)
+                            HyperCubeDef.qInterColumnSortOrder = data.qInterColumnSortOrder;
+
+                            //console.log('HyperCubeDef ', HyperCubeDef);
+                            var options = {};                         
+                            if($scope.report.layout) {
+                            options = _.extend(options, $scope.report.layout);    
+                            }                        
+                            options.title = $scope.report.title == '' ? $scope.data.activeTable.qMeta.title : $scope.report.title;
+                            options.qHyperCubeDef = HyperCubeDef;
+                            if($scope.report.totals)
+                                options.totals = $scope.report.totals;
+                            
+                            app.visualization.create($scope.report.visualizationType, [], options).then(function(visual) {
+                                //$scope.report.tableID = visual.id;
+                                var id = ($scope.fieldsAndSortbarVisible ? 'customreporttable' : 'customreporttablezoomed') + $scope.customReportId;
+                                visual.show(id);
+                                $scope.report.visual = visual;
+                                $scope.report.visualScope = $('#'+id).find('.qv-object-content-container').scope();
+                                // Invalidated
+                                $scope.report.visual.model.Validated.bind($scope.visualizationChanged);
+                                deferred.resolve(true);
+                            });
+                        }
+                    });
                   });
 
                   return deferred.promise;
@@ -1467,6 +1498,44 @@ define([
                   });
 
                   return deferred.promise;
+                }
+
+                function createVariable(variableName, value, isIncludeInBookmark) {
+                    return app.variable.createSessionVariable({
+                        qInfo: {qType: "variable"}, 
+                        qMeta: {privileges: ["read", "update", "delete"]}, 
+                        qName: variableName, 
+                        qDefinition: value, 
+                        qIncludeInBookmark: isIncludeInBookmark});
+                }
+
+                function updateVariable(variableName, value, isIncludeInBookmark) {
+                    return new Promise(function(resolve) {
+                        app.variable.getByName(variableName).then(function(varModel){
+                            if(varModel) {
+                                requestAnimationFrame(function () {
+                                    varModel.setStringValue(value)
+                                    .then(resolve)
+                                    .catch(resolve);
+                                });
+                            } else {
+                                if(!$scope.report[variableName + 'Created']) {
+                                    $scope.report[variableName + 'Created'] = true;
+                                    createVariable(variableName, value, isIncludeInBookmark)
+                                    .then(resolve)
+                                    .catch(resolve);
+                                }         
+                            }
+                        }).catch(function(){
+                            if(!$scope.report[variableName + 'Created']) {
+                                $scope.report[variableName + 'Created'] = true;
+
+                                createVariable(variableName, value, isIncludeInBookmark)
+                                .then(resolve)
+                                .catch(resolve);
+                            }
+                        });
+                    });
                 }
 
                 $scope.serializeReport = function() {

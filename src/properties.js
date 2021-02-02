@@ -323,6 +323,28 @@ define( [
         expressionType : "StringExpression",
         show: false
       },
+      dimVar: {
+        type: "string",
+        label: "Dimensions variable (optional)",
+        //translation : "Common.Variable",
+        ref: "props.dimVariable",
+        change: function(a, b, c, d){
+          // destroy an old variable:
+          if(d.layout.props.dimVariable)
+            deleteVariable(d.layout.props.dimVariable);
+        }
+      },
+      measVar: {
+        type: "string",
+        label: "Measures variable (optional)",
+        //translation : "Common.Variable",
+        ref: "props.measuresVariable",
+        change: function(a, b, c, d){
+          // destroy an old variable:
+          if(d.layout.props.measuresVariable)
+            deleteVariable(d.layout.props.measuresVariable);
+        }
+      },      
       constraints: {
         type: "items",
         component: "expandable-items",
