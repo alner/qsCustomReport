@@ -41,6 +41,19 @@ define([
                 self.$scope.size.clientHeight = $element[0].clientHeight //$element.context.clientHeight;
                 self.$scope.size.clientWidth = $element[0].clientWidth;
 
+                var variableName = layout.props.variable;
+                if(variableName) {
+                    var app = qlik.currApp();
+                    app.variable.getByName(variableName)
+                    .catch(function(){
+                        app.variable.createSessionVariable({qInfo: {qType: "variable"}, qMeta: {privileges: ["create", "read", "update"]}, qName: variableName, 
+                        qDefinition: null,
+                        qIncludeInBookmark: true
+                        });
+                        // qDefinition: null
+                    });
+                }
+
                 self.$scope.handleResize($element,layout.props.allowCollapse);
 
                 //const readyToPrint = new qlik.Promise(function(resolve, reject){                
@@ -1578,18 +1591,30 @@ define([
                     var isRestoreSession = qId;
                     var deferred = $q.defer();
                     var varModel = $scope.layout.props.variableExp;
+                    if(varModel == "-")
+                        varModel = null;
+
                     if(isRestoreSession)
                       varModel = $scope.restoreSessionData(qId);
 
                     //app.variable.getByName('ReportConfig').then(function(varModel){
                     if(!varModel) {
                       if(!qId) {
-                        $scope.data.activeTable = null;
+                        if($scope.data.masterObjectList.length > 0) {
+                            $scope.data.activeTable = $scope.data.masterObjectList[0]; 
+                            //$scope.loadActiveTable();
+                            $scope.changeTable();
+                            deferred.resolve();
+                            return deferred.promise;
+                        }
+                        else
+                            $scope.data.activeTable = null;
                       }
                       else
                         $scope.data.activeTable = _.find($scope.data.masterObjectList, function(item) {
                             return item.qInfo.qId == qId;
                         });
+
                       $scope.report.visualizationType = ($scope.data.activeTable && $scope.data.activeTable.qData.visualization) || null;
                       $scope.fieldsAndSortbarVisible = true;
                       $scope.report.interColumnSortOrder = [];
