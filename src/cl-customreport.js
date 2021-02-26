@@ -978,6 +978,7 @@ define([
                         true // all measures selected
                     ));
                     $scope.report.usedDimensionsAndMeasures = usedDimensionsAndMeasures;
+                    $scope.updateDimAndMeasVariables();
                 };
 
                 $scope.visualizationChanged = function() {
@@ -1060,6 +1061,33 @@ define([
                   }
                 }
 
+                $scope.updateDimAndMeasVariables = function() {
+                    var promises = [];
+                    var layout = $scope.layout;
+                    var dimVar = layout.props.dimVariable;
+                    var measVar = layout.props.measuresVariable;
+                    if(dimVar || measVar) {
+                        var dims = [];
+                        var meas = [];
+                        $scope.report.usedDimensionsAndMeasures.forEach(function (item) {
+                            if(dimVar && item.type == 'dimension') {
+                                dims.push('"' + item.title + '"');
+                            } 
+                            else if(measVar && item.type == 'measure') {
+                                meas.push('"' + item.title + '"');
+                            }
+                        });
+  
+                        if(dims.length > 0)
+                          promises.push(updateVariable(dimVar, dims.join(','), false));
+  
+                        if(meas.length > 0)
+                          promises.push(updateVariable(measVar, meas.join(','), false));
+                    }
+
+                    return promises;                   
+                }
+
                 $scope.createVisualization = function() {
                   var deferred = $q.defer();
                   var layout = $scope.layout;
@@ -1067,31 +1095,11 @@ define([
 
                   $scope.closeVisualization();
 
-                  var promises = [];
-                  var dimVar = layout.props.dimVariable;
-                  var measVar = layout.props.measuresVariable;
-                  if(dimVar || measVar) {
-                      var dims = [];
-                      var meas = [];
-                      $scope.report.usedDimensionsAndMeasures.forEach(function (item) {
-                          if(dimVar && item.type == 'dimension') {
-                              dims.push('"' + item.title + '"');
-                          } 
-                          else if(measVar && item.type == 'measure') {
-                              meas.push('"' + item.title + '"');
-                          }
-                      });
+                  var promises = $scope.updateDimAndMeasVariables();
 
-                      if(dims.length > 0)
-                        promises.push(updateVariable(dimVar, dims.join(','), false));
-
-                      if(meas.length > 0)
-                        promises.push(updateVariable(measVar, meas.join(','), false));
-                  }
-
-                  if(layout.props.measuresVariable) {
-                      var meas = [];
-                  }
+                //   if(layout.props.measuresVariable) {
+                //       var meas = [];
+                //   }
 
                   Promise.all(promises).then(function() {
                     getObjectProperties().then(function(data){
