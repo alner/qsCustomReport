@@ -41,18 +41,32 @@ define([
                 self.$scope.size.clientHeight = $element[0].clientHeight //$element.context.clientHeight;
                 self.$scope.size.clientWidth = $element[0].clientWidth;
 
+                var vars = [];
                 var variableName = layout.props.variable;
-                if(variableName) {
-                    var app = qlik.currApp();
-                    app.variable.getByName(variableName)
-                    .catch(function(){
-                        app.variable.createSessionVariable({qInfo: {qType: "variable"}, qMeta: {privileges: ["create", "read", "update"]}, qName: variableName, 
-                        qDefinition: null,
-                        qIncludeInBookmark: true
+                if(variableName)
+                    vars.push(variableName);
+
+                var dimVar = layout.props.dimVariable;
+                if(dimVar)
+                    vars.push(dimVar);
+
+                var measVar = layout.props.measuresVariable;
+                if(measVar)
+                    vars.push(measVar);
+
+                vars.forEach(function(variableName) {
+                    if(variableName) {
+                        var app = qlik.currApp();
+                        app.variable.getByName(variableName)
+                        .catch(function(){
+                            app.variable.createSessionVariable({qInfo: {qType: "variable"}, qMeta: {privileges: ["create", "read", "update"]}, qName: variableName, 
+                            qDefinition: null,
+                            qIncludeInBookmark: true
+                            });
+                            // qDefinition: null
                         });
-                        // qDefinition: null
-                    });
-                }
+                    }    
+                });
 
                 self.$scope.handleResize($element,layout.props.allowCollapse);
 
