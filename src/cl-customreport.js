@@ -1549,9 +1549,13 @@ define([
                         app.variable.getByName(variableName).then(function(varModel){
                             if(varModel) {
                                 requestAnimationFrame(function () {
-                                    varModel.setStringValue(value)
-                                    .then(resolve)
-                                    .catch(resolve);
+                                    app.variable.getContent(variableName).then(function(varData) {
+                                        if(varData.qContent.qString != value) {
+                                            varModel.setStringValue(value)
+                                            .then(resolve)
+                                            .catch(resolve);
+                                        }
+                                    });
                                 });
                             } else {
                                 if(!$scope.report[variableName + 'Created']) {
