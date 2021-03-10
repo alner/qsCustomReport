@@ -1105,7 +1105,7 @@ define([
                 $scope.createVisualization = function() {
                   var deferred = $q.defer();
                   var layout = $scope.layout;
-                  console.log('Layout', layout);
+                //   console.log('Layout', layout);
 
                   $scope.closeVisualization();
 
@@ -1554,8 +1554,8 @@ define([
                                             varModel.setStringValue(value)
                                             .then(resolve)
                                             .catch(resolve);
-                                        }
-                                    });
+                                        } else resolve();
+                                    }).catch(resolve);
                                 });
                             } else {
                                 if(!$scope.report[variableName + 'Created']) {
