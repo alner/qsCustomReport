@@ -2,7 +2,7 @@
 <div qv-extension id="{{'cl-customreport-container'+ customReportId}}" style="height: 100%; position: relative" ng-class="getClass()" ng-mousedown="onClick($event)">
   <div ng-show="collapsed"><div class="containerlabel"><i style="padding-right: 10px; padding-left: 10px" class="icon-table"></i>{{data.displayText}} </div>
                 </div>
-    <div ng-hide="collapsed">
+    <div ng-hide="collapsed" style="height: 100%">
         <div ng-show="fieldsAndSortbarVisible" class='container_left' ng-style="getContainerWidth('left')">
         <div class="bootstrap" style="margin-right: 12px;">
           <!--lui-button  ng-click="exportData('exportToExcel')" title='Export to Excel' ><i class="icon-toolbar-sharelist"> Excel</i></lui-button-->
@@ -29,8 +29,66 @@
                 <span ng-if="!data.dimensionsLabel" q-translation="Common.Dimensions"></span>
                 <!--span class="lui-text-default" q-translation="properties.dimensionLimits.limitation"></span-->
                 <span ng-show="report.limits.dimensions > 0">{{report.selections.dimension}} / {{report.limits.dimensions}}</span>
-            </div>            
-            <ul id='dimensionSortable' class="cr-lui-list dimension-list" ng-style="getListMaxHeight('dimension')">
+
+                <button 
+                    class="lui-fade-button"
+                    ng-if="report.groupByTags" 
+                    ng-click="expandOrCollapseDimsAndMeas(true)"
+                    q-title-translation= "Object.PivotTable.ContextMenu.ExpandAll"
+                >
+                    <span class="lui-fade-button__icon lui-icon lui-icon--small lui-icon--plus" />
+                </button>
+                <button 
+                    class="lui-fade-button"
+                    q-title-translation= "Object.PivotTable.ContextMenu.CollapseAll"
+                    ng-if="report.groupByTags" 
+                    ng-click="expandOrCollapseDimsAndMeas(false)"
+                >
+                    <span class="lui-fade-button__icon lui-icon lui-icon--small lui-icon--minus" />
+                </button>
+            </div>
+            <!-- (tag, tagObject) in report.dimensionsTags -->
+            <div 
+                class="items-div"
+                ng-if="report.groupByTags"
+                ng-repeat="tag in getSortedKeysForObject(report.dimensionsTags)"
+            >
+                <ul 
+                    id='dimensionSortable' 
+                    class="cr-lui-list dimension-list"
+                    ng-class="report.dimensionsTags[tag].expanded ? 'items-expanded' : 'items-collapsed'"
+                    ng-style="getListMaxHeight('dimension')"
+                >  
+                    <li 
+                        class="lui-list__header lui-list__item"
+                        ng-click="report.dimensionsTags[tag].expanded = !report.dimensionsTags[tag].expanded"
+                        ng-class="!report.dimensionsTags[tag].expanded ? 'li-collapsed' : ''"
+                    >
+                        <span class="lui-list__aside">
+                            <span ng-class="!report.dimensionsTags[tag].expanded ? 'lui-icon lui-icon--small icon-ec lui-icon--plus' : 'lui-icon lui-icon--small icon-ec lui-icon--minus'" />
+                        </span>
+                        <span class="lui-list__text">{{tag}}</span>
+                    </li>
+                    <li 
+                        ng-repeat="dimension in report.dimensionsTags[tag].items"
+                        qv-swipe="swipe($event)" 
+                        class="cr-lui-list__item" 
+                        ng-class="!dimension.selected && report.limits.dimensions > 0  && report.selections.dimension >= report.limits.dimensions ? 'lui-disabled': ''" 
+                        data-id={{dimension.dataId}} 
+                        ng-click="selectItem(dimension)" 
+                        title="{{dimension.title +'\n' + dimension.description}}"
+                    >  
+                        <div class="cr-lui-list__text">{{dimension.title}}</div><div class="lui-icon--tick lui-icon" ng-if="dimension.selected"></div>
+                    </li>
+                </ul>
+            </div>
+
+            <ul 
+                id='dimensionSortable' 
+                class="cr-lui-list dimension-list" 
+                ng-style="getListMaxHeight('dimension')"
+                ng-if="!report.groupByTags"
+            >
                 <!-- ng-class="dimension.handle" -->
                 <li qv-swipe="swipe($event)" class="cr-lui-list__item" 
                     ng-class="!dimension.selected && report.limits.dimensions > 0  && report.selections.dimension >= report.limits.dimensions ? 'lui-disabled': ''" 
@@ -48,7 +106,44 @@
             <!--span class="lui-text-default" q-translation="properties.dimensionLimits.limitation"></span-->
             <span ng-show="report.limits.measures > 0" >{{report.selections.measure}} / {{report.limits.measures}}</span>
           </div>
-          <ul id='measureSortable' class="cr-lui-list measure-list" ng-style="getListMaxHeight('measure')">
+            <div 
+                class="items-div"
+                ng-if="report.groupByTags"
+                ng-repeat="tag in getSortedKeysForObject(report.measuresTags)"
+            >
+                <ul 
+                    id='measureSortable' 
+                    class="cr-lui-list measure-list"
+                    ng-class="report.measuresTags[tag].expanded ? 'items-expanded' : 'items-collapsed'"
+                    ng-style="getListMaxHeight('dimension')"
+                >  
+                    <li 
+                        class="lui-list__header lui-list__item"
+                        ng-click="report.measuresTags[tag].expanded = !report.measuresTags[tag].expanded"
+                        ng-class="!report.measuresTags[tag].expanded ? 'li-collapsed' : ''"
+                    >
+                        <span class="lui-list__aside">
+                            <span ng-class="!report.measuresTags[tag].expanded ? 'lui-icon lui-icon--small icon-ec lui-icon--plus' : 'lui-icon lui-icon--small icon-ec lui-icon--minus'" />
+                        </span>
+                        <span class="lui-list__text">{{tag}}</span>
+                    </li>
+                    <li 
+                        class="cr-lui-list__item" 
+                        ng-repeat="measure in report.measuresTags[tag].items"
+                        ng-class="!measure.selected && report.limits.measures > 0 && report.selections.measure >= report.limits.measures ? 'lui-disabled': ''" 
+                        ng-click="selectItem(measure)" 
+                        title="{{measure.title +'\n' + measure.description}}"
+                    >  
+                        <div class="cr-lui-list__text">{{measure.title}}</div><div class="lui-icon--tick lui-icon" ng-if="measure.selected"></div>
+                    </li>                    
+                </ul>
+            </div>
+          <ul 
+            id='measureSortable' 
+            class="cr-lui-list measure-list" 
+            ng-style="getListMaxHeight('measure')"
+            ng-if="!report.groupByTags"
+            >
             <li class="cr-lui-list__item" 
                 ng-class="!measure.selected && report.limits.measures > 0 && report.selections.measure >= report.limits.measures ? 'lui-disabled': ''" 
                 ng-click="selectItem(measure)" 

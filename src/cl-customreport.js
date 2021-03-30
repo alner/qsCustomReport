@@ -421,7 +421,8 @@ define([
                         dimension: 0, // count of selected dimensions
                         measure: 0 // count of selected measures
                     },
-                    dimVariableCreated: false,                    
+                    dimVariableCreated: false, 
+                    groupByTags: $scope.layout.props.groupByTags,
                 };
 
                 var dragoverHandler = function(event) {
@@ -648,6 +649,7 @@ define([
                 
                 $scope.getDimensionsProps = function (qDimensions, isSelected) {
                     //var dataId = defaultDataId;
+                    var groupByTags = $scope.layout.props.groupByTags;
                     return _.map(qDimensions.dimensionInfos, function(dimensionInfo) {
                         //dataId = dataId + 1;
                         var dimension = _.find(qDimensions.dimensionDefs, function(item) {
@@ -669,13 +671,25 @@ define([
                         //     dimensionOptions = dimension;
                         // }
 
+                        var tags = [' '];
+                        if (groupByTags && dimension.qLibraryId) {
+                            var libraryItem = _.find($scope.data.masterDimensions.qItems, function(item) {
+                                return item.qInfo.qId == dimension.qLibraryId;
+                            });
+                            if(libraryItem) {
+                                tags = (libraryItem.qData && libraryItem.qData.tags) || [' '];
+                                if(tags.length == 0) tags = [' '];
+                            }
+                        }
+
                         return {
                             title: dimensionInfo.qFallbackTitle || (dimension.qDef && dimension.qDef.qFieldLabels[0] == '' ? dimension.qDef.qFieldDefs[0] : dimension.qDef.qFieldLabels[0]),
                             description: '',
                             columnOptions: dimensionOptions,
                             type: 'dimension',
                             selected: isSelected ? true : false,
-                            dataId: dimension.qLibraryId || dimension.qDef.cId
+                            dataId: dimension.qLibraryId || dimension.qDef.cId,
+                            tags: tags,
                         };
                     });
                     
@@ -684,6 +698,7 @@ define([
                 
                 $scope.getMeasuresProps = function(qMeasures, isSelected){
                     // var dataId = defaultDataId;
+                    var groupByTags = $scope.layout.props.groupByTags;
                     return _.map(qMeasures.measureInfos, function(measureInfo) {
                         // dataId = dataId + 1;
                         var measure = _.find(qMeasures.measureDefs, function(item) {
@@ -705,6 +720,16 @@ define([
                         // } else {
                         //     measureOptions = measure;
                         // }
+                        var tags = [' '];
+                        if (groupByTags && measure.qLibraryId) {
+                            var libraryItem = _.find($scope.data.masterMeasures.qItems, function(item) {
+                                return item.qInfo.qId == measure.qLibraryId;
+                            });
+                            if(libraryItem) {
+                                tags = (libraryItem.qData && libraryItem.qData.tags) || [' '];
+                                if(tags.length == 0) tags = [' '];
+                            }
+                        }                        
 
                         return {
                             title: measureInfo.qFallbackTitle || (measure.qDef && measure.qDef.qLabel ? measure.qDef.qLabel : measure.qDef.qDef),
@@ -712,7 +737,8 @@ define([
                             columnOptions: measureOptions,
                             type: 'measure',
                             selected: isSelected ? true : false,
-                            dataId: measure.qLibraryId || measure.qDef.cId
+                            dataId: measure.qLibraryId || measure.qDef.cId,
+                            tags: tags,
                         };
                     });
                     
@@ -746,7 +772,57 @@ define([
                     $scope.report.dimensions = dims;
                     $scope.report.measures = meas;
                     $scope.report.suppressZero = suppressZero;
-                } 
+
+                    if($scope.layout.props.groupByTags) {
+                        $scope.report.dimensionsTags = {};
+                        _.each(dimensions, function(dimension) {
+                            _.each(dimension.tags, function(tag) {
+                                if(!$scope.report.dimensionsTags[tag]) {
+                                    $scope.report.dimensionsTags[tag] = {
+                                        items: [],
+                                        expanded: false,
+                                    };
+                                }
+                                
+                                $scope.report.dimensionsTags[tag].items.push(dimension);
+                            });
+                        });
+
+                        $scope.report.measuresTags = {};
+                        _.each(measures, function(measure) {
+                            _.each(measure.tags, function(tag) {
+                                if(!$scope.report.measuresTags[tag]) {
+                                    $scope.report.measuresTags[tag] = {
+                                        items: [],
+                                        expanded: false,
+                                    };
+                                }
+                                
+                                $scope.report.measuresTags[tag].items.push(measure);
+                            });
+                        });                        
+                    }
+                }
+                
+                $scope.getSortedKeysForObject = function(obj) {
+                    if(!obj) return [];
+
+                    return _.sortBy(Object.keys(obj), function(key) {
+                        return key;
+                    });
+                }
+
+                $scope.expandOrCollapseDimsAndMeas = function (isExpand) {
+                    _.each(Object.keys($scope.report.dimensionsTags), function(key) {
+                        $scope.report.dimensionsTags[key].expanded = isExpand;
+                    });
+
+                    _.each(Object.keys($scope.report.measuresTags), function(key) {
+                        $scope.report.measuresTags[key].expanded = isExpand;
+                    });
+                    // console.log($scope.layout);
+                    // qlik.resize($scope.layout.qInfo.qId);
+                }
 
                 $scope.getDimensionsAndMeasuresFor = function(qId) {
                     if(!qId) return $q.resolve();
@@ -1731,6 +1807,11 @@ define([
                 $scope.$on('$destroy', function() {
                     $scope.serializeReport();
                 });
+
+                $scope.$watch('layout.props.groupByTags', function(groupByTags) {
+                    $scope.report.groupByTags = groupByTags;
+                    initMasterItems();
+                });                
 
                 $scope.$watchCollection('layout.props.tagSetting', function(newTag) {
                     $scope.data.tag = newTag;

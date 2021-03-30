@@ -26,7 +26,7 @@ ul.dimension-list {
   float: left; 
   position: relative; 
   overflow: auto;
-
+  height: 100%;
 }
 .container_right {
   float: left; 
@@ -260,4 +260,30 @@ i.icon-toolbar-clearselections.disabled {
 [dir="rtl"] .cr-lui-list__text + .cr-lui-list__aside {
   padding-left: 10px;
   padding-right: 0;
+}
+
+.items-div {
+  padding-bottom: 5px;
+}
+
+.items-collapsed {
+  height: 0px;
+  overflow: hidden !important;
+  max-height: 0px !important;
+  transition: max-height 0.15s ease-out;
+}
+
+.items-expanded {
+  height: auto;
+  overflow: auto !important;
+  max-height: 1200px !important;
+  transition: max-height 0.25s ease-in;
+}
+
+.icon-ec {
+  color: rgba(89,89,89,.8);
+}
+
+.li-collapsed {
+  background-color: #F2F2F2;
 }

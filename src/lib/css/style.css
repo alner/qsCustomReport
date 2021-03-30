@@ -236,3 +236,11 @@
 .prevent-pointers {
   pointer-events: none;
 }
+
+.qv-object-cl-customreport .items-collapsed {
+  height: 0px;
+}
+
+.qv-object-cl-customreport .items-expanded {
+  height: auto;
+}

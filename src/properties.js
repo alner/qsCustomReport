@@ -101,6 +101,13 @@ define( [
     defaultValue: true
   }
 
+  var groupByTags = {
+    type: "boolean",
+    label: "Group by tags",
+    ref: "props.groupByTags",
+    defaultValue: false,
+  }
+
   var sortOrder = {
 
               type : "string",
@@ -201,6 +208,7 @@ define( [
         translation: "Widget.Settings",
         items: {
           //tagSetting: tagSetting,
+          groupByTags: groupByTags,
           tagColor: tagColor,
           sortOrder: sortOrder,
           allowCollapse: allowCollapse,
