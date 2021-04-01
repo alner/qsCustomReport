@@ -101,11 +101,28 @@ define( [
     defaultValue: true
   }
 
-  var groupByTags = {
-    type: "boolean",
-    label: "Group by tags",
-    ref: "props.groupByTags",
-    defaultValue: false,
+  // var groupByTags = {
+  //   type: "boolean",
+  //   label: "Group by tags",
+  //   ref: "props.groupByTags",
+  //   defaultValue: false,
+  // }
+  var groupBy = {
+    type : "string",
+    component : "dropdown",
+    label : "Group items by",
+    ref : "props.groupBy",
+    defaultValue: "none",
+    options : [{
+      value : "none",
+      label : "None"
+    }, {
+      value : "groupByTags",
+      label : "Tags"
+    }, {
+      value : "groupByDesc",
+      label : "Description"
+    }]    
   }
 
   var sortOrder = {
@@ -204,11 +221,12 @@ define( [
     items: {
       settings: {
         type: "items",
-        label: "Settings",
-        translation: "Widget.Settings",
+        label: "Appearance",
+        translation: "Common.Appearance",
         items: {
           //tagSetting: tagSetting,
-          groupByTags: groupByTags,
+          //groupByTags: groupByTags,
+          groupBy: groupBy,
           tagColor: tagColor,
           sortOrder: sortOrder,
           allowCollapse: allowCollapse,
@@ -287,8 +305,8 @@ define( [
   // Tag Panel
   var tagPanel = {
     type: "items",
-    label: "Setup",
-    translation: "Widget.Settings",
+    label: "Data",
+    translation: "properties.data",
     items: {
       tagPanel: {
         type: "items",

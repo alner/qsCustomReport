@@ -396,6 +396,7 @@ define([
                 $scope.isUpdateRights = permissions && permissions.update;
                 $scope.isShowMasterObjectList  = false;
 
+                var groupByTags = $scope.layout.props.groupBy != 'none';
                 // Current (displayed) report configuration
                 $scope.report = {
 //                    tableID: null,
@@ -422,7 +423,7 @@ define([
                         measure: 0 // count of selected measures
                     },
                     dimVariableCreated: false, 
-                    groupByTags: $scope.layout.props.groupByTags,
+                    groupByTags: groupByTags,
                 };
 
                 var dragoverHandler = function(event) {
@@ -649,7 +650,8 @@ define([
                 
                 $scope.getDimensionsProps = function (qDimensions, isSelected) {
                     //var dataId = defaultDataId;
-                    var groupByTags = $scope.layout.props.groupByTags;
+                    var groupByTags = $scope.layout.props.groupBy == 'groupByTags';
+                    var groupByDesc = $scope.layout.props.groupBy == 'groupByDesc';
                     return _.map(qDimensions.dimensionInfos, function(dimensionInfo) {
                         //dataId = dataId + 1;
                         var dimension = _.find(qDimensions.dimensionDefs, function(item) {
@@ -660,7 +662,7 @@ define([
                         if (dimension.qLibraryId) {
                             dimensionOptions.qType = 'dimension';
                         }
-                                                    
+                               
                         // if (dimension.qLibraryId) {
                         //     var libraryItem = _.find($scope.data.masterDimensions.qItems, function(item) {
                         //         return item.qInfo.qId == dimension.qLibraryId;
@@ -672,14 +674,27 @@ define([
                         // }
 
                         var tags = [' '];
-                        if (groupByTags && dimension.qLibraryId) {
-                            var libraryItem = _.find($scope.data.masterDimensions.qItems, function(item) {
-                                return item.qInfo.qId == dimension.qLibraryId;
-                            });
-                            if(libraryItem) {
-                                tags = (libraryItem.qData && libraryItem.qData.tags) || [' '];
-                                if(tags.length == 0) tags = [' '];
+                        if (groupByTags || groupByDesc) {
+                            // Master items?
+                            if(dimension.qLibraryId) {
+                                var libraryItem = _.find($scope.data.masterDimensions.qItems, function(item) {
+                                    return item.qInfo.qId == dimension.qLibraryId;
+                                });
+                                if(libraryItem) {
+                                    if(groupByTags)
+                                        tags = (libraryItem.qData && libraryItem.qData.tags) || [' '];
+                                    else {
+                                        tags = [libraryItem.qMeta && libraryItem.qMeta.description] || [' '];
+                                    }
+                                }
+                            } else {
+                                // field
+                                tags = _.filter(dimensionInfo.qTags, function(tag) {
+                                    return !tag.match(/^\$/);
+                                });
                             }
+
+                            if(tags.length == 0) tags = [' '];
                         }
 
                         return {
@@ -698,7 +713,9 @@ define([
                 
                 $scope.getMeasuresProps = function(qMeasures, isSelected){
                     // var dataId = defaultDataId;
-                    var groupByTags = $scope.layout.props.groupByTags;
+                    var groupByTags = $scope.layout.props.groupBy == 'groupByTags';
+                    var groupByDesc = $scope.layout.props.groupBy == 'groupByDesc';
+
                     return _.map(qMeasures.measureInfos, function(measureInfo) {
                         // dataId = dataId + 1;
                         var measure = _.find(qMeasures.measureDefs, function(item) {
@@ -721,12 +738,16 @@ define([
                         //     measureOptions = measure;
                         // }
                         var tags = [' '];
-                        if (groupByTags && measure.qLibraryId) {
+                        if ((groupByTags || groupByDesc) && measure.qLibraryId) {
                             var libraryItem = _.find($scope.data.masterMeasures.qItems, function(item) {
                                 return item.qInfo.qId == measure.qLibraryId;
                             });
                             if(libraryItem) {
-                                tags = (libraryItem.qData && libraryItem.qData.tags) || [' '];
+                                if(groupByTags)
+                                    tags = (libraryItem.qData && libraryItem.qData.tags) || [' '];
+                                else
+                                    tags = [libraryItem.qMeta && libraryItem.qMeta.description] || [' '];
+
                                 if(tags.length == 0) tags = [' '];
                             }
                         }                        
@@ -773,7 +794,7 @@ define([
                     $scope.report.measures = meas;
                     $scope.report.suppressZero = suppressZero;
 
-                    if($scope.layout.props.groupByTags) {
+                    if($scope.layout.props.groupBy != 'none') {
                         $scope.report.dimensionsTags = {};
                         _.each(dimensions, function(dimension) {
                             _.each(dimension.tags, function(tag) {
@@ -812,16 +833,16 @@ define([
                     });
                 }
 
-                $scope.expandOrCollapseDimsAndMeas = function (isExpand) {
+                $scope.expandOrCollapseDims = function (isExpand) {
                     _.each(Object.keys($scope.report.dimensionsTags), function(key) {
                         $scope.report.dimensionsTags[key].expanded = isExpand;
                     });
+                }
 
+                $scope.expandOrCollapseMeas = function (isExpand) {
                     _.each(Object.keys($scope.report.measuresTags), function(key) {
                         $scope.report.measuresTags[key].expanded = isExpand;
-                    });
-                    // console.log($scope.layout);
-                    // qlik.resize($scope.layout.qInfo.qId);
+                    });                    
                 }
 
                 $scope.getDimensionsAndMeasuresFor = function(qId) {
@@ -1808,8 +1829,13 @@ define([
                     $scope.serializeReport();
                 });
 
-                $scope.$watch('layout.props.groupByTags', function(groupByTags) {
-                    $scope.report.groupByTags = groupByTags;
+                // $scope.$watch('layout.props.groupByTags', function(groupByTags) {
+                //     $scope.report.groupByTags = groupByTags;
+                //     initMasterItems();
+                // });
+
+                $scope.$watch('layout.props.groupBy', function(groupBy) {
+                    $scope.report.groupByTags = groupBy != 'none';
                     initMasterItems();
                 });                
 
