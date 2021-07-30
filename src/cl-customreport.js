@@ -520,7 +520,7 @@ define([
                         $scope.data.masterObjectList = _.reduce(
                             _.sortBy(reply.qAppObjectList.qItems, function (item) {
                                 return item.qMeta.title;
-                            }), 
+                            }),
                         function(acc, obj) {
                             //if (obj.qData.visualization == 'table') {
                                 if ($scope.data.tag == 'All tables') {
