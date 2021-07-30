@@ -517,7 +517,11 @@ define([
                     }).then(function(model) {
                         var reply = model.layout;
                         //$scope.data.user = reply.user;
-                        $scope.data.masterObjectList = _.reduce(reply.qAppObjectList.qItems, function(acc, obj) {
+                        $scope.data.masterObjectList = _.reduce(
+                            _.sortBy(reply.qAppObjectList.qItems, function (item) {
+                                return item.qMeta.title;
+                            }), 
+                        function(acc, obj) {
                             //if (obj.qData.visualization == 'table') {
                                 if ($scope.data.tag == 'All tables') {
                                     acc.push(obj);
