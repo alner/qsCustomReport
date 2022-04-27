@@ -16,7 +16,7 @@
   "author": "Karl Fredberg Sjöstrand",
   "license": "MIT",
   "dependencies": {
-    "grunt": "~0.4.5",
+    "grunt": "~1.5.2",
     "grunt-contrib-clean": "~0.6.0",
     "grunt-cleanempty": "~1.0.3",
     "grunt-contrib-compress": "~0.13.0",
