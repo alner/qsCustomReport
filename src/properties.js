@@ -419,7 +419,25 @@ define( [
         //measures: measures,
         //sorting: sorting,
         addons: addons,
-        appearance: appearancePanel
+        appearance: appearancePanel,
+        about: {
+          type: 'items',
+          label: 'About',
+          translation: 'Common.About',
+          items: {
+            versionInfo: {
+              label: 'Custom Report @@version',
+              component: 'text',
+              style: 'sHeader',
+            },
+            // helpLink: {
+            //   label: `Author: ${ver.author}`,
+            //   // translation: 'GlobalMenu.Help',
+            //   component: 'link',
+            //   url: ver.linkedProfile,
+            // },
+          },
+        }
       }
   };
 

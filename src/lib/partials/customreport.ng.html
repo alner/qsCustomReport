@@ -24,12 +24,20 @@
             </form>
           </div>
 
-            <div class="containerlabel">
+            <div class="containerlabel sb">
                 <!--  -->
                 <span ng-if="data.dimensionsLabel">{{data.dimensionsLabel}}</span>
                 <span ng-if="!data.dimensionsLabel" q-translation="Common.Dimensions"></span>
                 <!--span class="lui-text-default" q-translation="properties.dimensionLimits.limitation"></span-->
-                <span ng-show="report.limits.dimensions > 0">{{report.selections.dimension}} / {{report.limits.dimensions}}</span>
+                <span ng-show="report.limits.dimensions > 0" style="padding-left:5px">{{report.selections.dimension}} / {{report.limits.dimensions}}</span>
+
+                <button 
+                    ng-click="onDimensionSearch()" 
+                    class="lui-fade-button"
+                    ng-class="report.search.showDimensionSearch ? 'lui-active':'' "
+                > 
+                    <span class="lui-icon lui-icon--search"></span>
+                </button>
 
                 <button 
                     class="lui-fade-button"
@@ -47,6 +55,36 @@
                 >
                     <span class="lui-fade-button__icon lui-icon lui-icon--small lui-icon--minus" />
                 </button>
+            </div>
+
+            <!-- Search dimensions -->
+            <div class="lui-search" ng-if="report.search.showDimensionSearch">
+                <div 
+                    class="lui-search item-search"
+                >
+                    <span class="lui-icon lui-icon--search lui-search__search-icon"></span>
+                    <input
+                        id="CR_DimensionSearch"
+                        ng-model="report.search.dimensions" 
+                        class="lui-search__input" 
+                        maxlength="255" 
+                        spellcheck="false" 
+                        type="text" 
+                        q-placeholder="Common.Search"
+                        ng-trim="true"
+                        aria-invalid="false"
+                        autofocus
+                    >
+                </div>
+                <button 
+                    class="lui-search__clear-button" 
+                    ng-click="onClearDimensionSearch();" 
+                    ng-hide="!report.search.dimensions" 
+                    q-title-translation="Common.ClearSearch" 
+                    title="Clear search field" 
+                    aria-hidden="false">
+                        <span class="lui-icon lui-icon--small lui-icon--close"></span>
+                </button>                
             </div>
             <!-- (tag, tagObject) in report.dimensionsTags -->
             <div 
@@ -72,7 +110,7 @@
                         <span class="lui-list__text">{{tag}}</span>
                     </li>
                     <li 
-                        ng-repeat="dimension in report.dimensionsTags[tag].items"
+                        ng-repeat="dimension in report.dimensionsTags[tag].items | filter:{title:report.search.dimensions}"
                         qv-swipe="swipe($event)" 
                         class="cr-lui-list__item" 
                         ng-class="!dimension.selected && report.limits.dimensions > 0  && report.selections.dimension >= report.limits.dimensions ? 'lui-disabled': ''" 
@@ -80,7 +118,7 @@
                         ng-click="selectItem(dimension)" 
                         title="{{dimension.title +'\n' + dimension.description}}"
                     >  
-                        <div class="cr-lui-list__text">{{dimension.title}}</div><div class="lui-icon--tick lui-icon" ng-if="dimension.selected"></div>
+                        <div class="cr-lui-list__text" ng-bind-html="highlightText(dimension.title, report.search.dimensions)"></div><div class="lui-icon--tick lui-icon" ng-if="dimension.selected"></div>
                     </li>
                 </ul>
             </div>
@@ -97,16 +135,24 @@
                     data-id={{dimension.dataId}} 
                     ng-click="selectItem(dimension)" 
                     title="{{dimension.title +'\n' + dimension.description}}"  
-                    ng-repeat="dimension in report.dimensions">
-                <div class="cr-lui-list__text">{{dimension.title}}</div><div class="lui-icon--tick lui-icon" ng-if="dimension.selected"></div>
+                    ng-repeat="dimension in report.dimensions | filter:{title:report.search.dimensions}">
+                <div class="cr-lui-list__text" ng-bind-html="highlightText(dimension.title, report.search.dimensions)"></div><div class="lui-icon--tick lui-icon" ng-if="dimension.selected"></div>
                 </li>
             </ul>
             
-          <div class="containerlabel"> <!-- ng-show="isUpdateRights" -->
+          <div class="containerlabel sb"> <!-- ng-show="isUpdateRights" -->
             <span ng-if="data.measuresLabel">{{data.measuresLabel}}</span>
             <span ng-if="!data.measuresLabel" q-translation="Common.Measures"></span>
             <!--span class="lui-text-default" q-translation="properties.dimensionLimits.limitation"></span-->
             <span ng-show="report.limits.measures > 0" >{{report.selections.measure}} / {{report.limits.measures}}</span>
+
+            <button 
+                ng-click="onMeasureSearch()" 
+                class="lui-fade-button"
+                ng-class="report.search.showMeasureSearch ? 'lui-active':'' "
+            > 
+                <span class="lui-icon lui-icon--search"></span>
+            </button>            
 
             <button 
                 class="lui-fade-button"
@@ -125,6 +171,37 @@
                 <span class="lui-fade-button__icon lui-icon lui-icon--small lui-icon--minus" />
             </button>
           </div>
+
+            <!-- Search measures -->
+            <div class="lui-search" ng-if="report.search.showMeasureSearch">
+                <div 
+                    class="lui-search item-search"
+                >
+                    <span class="lui-icon lui-icon--search lui-search__search-icon"></span>
+                    <input
+                        id="CR_MeasureSearch"
+                        ng-model="report.search.measures" 
+                        class="lui-search__input" 
+                        maxlength="255" 
+                        spellcheck="false" 
+                        type="text" 
+                        q-placeholder="Common.Search"
+                        ng-trim="true"
+                        aria-invalid="false"
+                        autofocus
+                    >
+                </div>
+                <button 
+                    class="lui-search__clear-button" 
+                    ng-click="onClearMeasureSearch();" 
+                    ng-hide="!report.search.measures" 
+                    q-title-translation="Common.ClearSearch" 
+                    title="Clear search field" 
+                    aria-hidden="false">
+                        <span class="lui-icon lui-icon--small lui-icon--close"></span>
+                </button>                
+            </div>
+
             <div 
                 class="items-div"
                 ng-if="report.groupByTags"
@@ -149,12 +226,12 @@
                     </li>
                     <li 
                         class="cr-lui-list__item" 
-                        ng-repeat="measure in report.measuresTags[tag].items"
+                        ng-repeat="measure in report.measuresTags[tag].items | filter:{title:report.search.measures}"
                         ng-class="!measure.selected && report.limits.measures > 0 && report.selections.measure >= report.limits.measures ? 'lui-disabled': ''" 
                         ng-click="selectItem(measure)" 
                         title="{{measure.title +'\n' + measure.description}}"
                     >  
-                        <div class="cr-lui-list__text">{{measure.title}}</div><div class="lui-icon--tick lui-icon" ng-if="measure.selected"></div>
+                        <div class="cr-lui-list__text" ng-bind-html="highlightText(measure.title, report.search.measures)"></div><div class="lui-icon--tick lui-icon" ng-if="measure.selected"></div>
                     </li>                    
                 </ul>
             </div>
@@ -168,8 +245,8 @@
                 ng-class="!measure.selected && report.limits.measures > 0 && report.selections.measure >= report.limits.measures ? 'lui-disabled': ''" 
                 ng-click="selectItem(measure)" 
                 title="{{measure.title +'\n' + measure.description}}"  
-                ng-repeat="measure in report.measures">
-              <div class="cr-lui-list__text">{{measure.title}}</div><div class="lui-icon--tick lui-icon" ng-if="measure.selected"></div>
+                ng-repeat="measure in report.measures | filter:{title:report.search.measures}">
+              <div class="cr-lui-list__text" ng-bind-html="highlightText(measure.title, report.search.measures)"></div><div class="lui-icon--tick lui-icon" ng-if="measure.selected"></div>
             </li>
           </ul>
         </div>

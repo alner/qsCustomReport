@@ -244,3 +244,15 @@
 .qv-object-cl-customreport .items-expanded {
   height: auto;
 }
+
+.qv-object-cl-customreport .lui-search {
+  align-items: center;
+  background-color: #fff;
+  box-sizing: border-box;
+  display: flex;
+  height: 38px;
+}
+
+.qv-object-cl-customreport .lui-search.dimension-search {
+  width: 100%;
+}

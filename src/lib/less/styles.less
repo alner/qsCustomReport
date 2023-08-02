@@ -125,6 +125,12 @@ ul.report-list {
   overflow: hidden;
 }
 
+.sb {
+  display: flex;
+  justify-content: space-between; 
+  align-items: center; 
+}
+
 .sortablelist span {
   cursor: context-menu;
   padding-left: 2px; 
@@ -286,4 +292,27 @@ i.icon-toolbar-clearselections.disabled {
 
 .li-collapsed {
   background-color: #F2F2F2;
+}
+
+.lui-search {
+  align-items: center;
+  background-color: #fff;
+  box-sizing: border-box;
+  display: flex;
+  height: 38px;
+}
+
+.lui-search.item-search {
+  width: 100%;
+}
+
+.lui-search__clear-button {
+  background-color: initial;
+  border: none;
+  cursor: pointer;
+  flex: 0 0 32px;
+  height: 100%;
+  outline: none;
+  text-align: center;
+  transition: color .2s ease-out;
 }

@@ -355,7 +355,7 @@ define([
 
             template: ngTemplate,
 
-            controller: ['$scope', function($scope) {
+            controller: ['$scope', '$sce', function($scope, $sce) {
                 $scope.customReportId = $scope.layout.qInfo.qId;
                 $scope.size = {
                     clientHeight: -1,
@@ -424,7 +424,47 @@ define([
                     },
                     dimVariableCreated: false, 
                     groupByTags: groupByTags,
+                    search: {
+                        showDimensionSearch: false,
+                        dimensions: '',
+                        showMeasureSearch: false,
+                        measures: '',
+                    }
                 };
+
+                $scope.onDimensionSearch = function() {
+                    $scope.report.search.showDimensionSearch = !$scope.report.search.showDimensionSearch;
+                    if($scope.report.search.showDimensionSearch)
+                        setTimeout(function() {
+                            document.querySelector('#CR_DimensionSearch').focus();
+                        }, 0);
+                }
+
+                $scope.onClearDimensionSearch = function() {
+                    $scope.report.search.dimensions = '';
+                    document.querySelector('#CR_DimensionSearch').focus();
+                }
+
+                $scope.onMeasureSearch = function() {
+                    $scope.report.search.showMeasureSearch = !$scope.report.search.showMeasureSearch;
+                    if($scope.report.search.showMeasureSearch)
+                        setTimeout(function() {
+                            document.querySelector('#CR_MeasureSearch').focus();
+                        }, 0);
+                }
+
+                $scope.onClearMeasureSearch = function() {
+                    $scope.report.search.measures = '';
+                    document.querySelector('#CR_MeasureSearch').focus();
+                }                
+
+                $scope.highlightText = function(text, query) {
+                    if(!text) return '';
+                    if(!query) return text;
+
+                    const re = new RegExp(query, 'igm');
+                    return $sce.trustAsHtml(text.replace(re, '<span class="lui-texthighlight">$&</span>'));
+                }
 
                 var dragoverHandler = function(event) {
                     event.preventDefault();
@@ -656,8 +696,13 @@ define([
                     //var dataId = defaultDataId;
                     var groupByTags = $scope.layout.props.groupBy == 'groupByTags';
                     var groupByDesc = $scope.layout.props.groupBy == 'groupByDesc';
-                    return _.map(qDimensions.dimensionInfos, function(dimensionInfo) {
+                    return _.filter(_.map(qDimensions.dimensionInfos, function(dimensionInfo) {
                         //dataId = dataId + 1;
+
+                        // Calc conditions
+                        if(dimensionInfo.qError && dimensionInfo.qError.qErrorCode == 7005)
+                            return null;
+
                         var dimension = _.find(qDimensions.dimensionDefs, function(item) {
                             return item.qDef.cId == dimensionInfo.cId;
                         });
@@ -710,6 +755,8 @@ define([
                             dataId: dimension.qLibraryId || dimension.qDef.cId,
                             tags: tags,
                         };
+                    }), function (item) {
+                        return item != null;
                     });
                     
                     //return dataId;
@@ -720,8 +767,12 @@ define([
                     var groupByTags = $scope.layout.props.groupBy == 'groupByTags';
                     var groupByDesc = $scope.layout.props.groupBy == 'groupByDesc';
 
-                    return _.map(qMeasures.measureInfos, function(measureInfo) {
+                    return _.filter(_.map(qMeasures.measureInfos, function(measureInfo) {
                         // dataId = dataId + 1;
+                        // Calc conditions
+                        if(measureInfo.qError && measureInfo.qError.qErrorCode == 7005)
+                            return null;
+
                         var measure = _.find(qMeasures.measureDefs, function(item) {
                             return item.qDef.cId == measureInfo.cId;
                         });
@@ -765,6 +816,8 @@ define([
                             dataId: measure.qLibraryId || measure.qDef.cId,
                             tags: tags,
                         };
+                    }), function (item) {
+                        return item != null;
                     });
                     
                     // return dataId;

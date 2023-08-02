@@ -64,3 +64,10 @@ See [CHANGELOG](CHANGELOG.yml)
 The software is made available "AS IS" without any warranty of any kind under the MIT License (MIT).
 
 See [Additional license information for this solution.](LICENSE.md)
+
+# Build
+
+nodejs 8.11.3 or compatible
+cd grunt
+grunt dev - development release
+grunt release - production release
