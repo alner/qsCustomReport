@@ -434,10 +434,13 @@ define([
 
                 $scope.onDimensionSearch = function() {
                     $scope.report.search.showDimensionSearch = !$scope.report.search.showDimensionSearch;
-                    if($scope.report.search.showDimensionSearch)
+                    if($scope.report.search.showDimensionSearch) {
                         setTimeout(function() {
                             document.querySelector('#CR_DimensionSearch').focus();
                         }, 0);
+                    } else {
+                        $scope.report.search.dimensions = '';
+                    }
                 }
 
                 $scope.onClearDimensionSearch = function() {
@@ -447,10 +450,13 @@ define([
 
                 $scope.onMeasureSearch = function() {
                     $scope.report.search.showMeasureSearch = !$scope.report.search.showMeasureSearch;
-                    if($scope.report.search.showMeasureSearch)
+                    if($scope.report.search.showMeasureSearch) {
                         setTimeout(function() {
                             document.querySelector('#CR_MeasureSearch').focus();
                         }, 0);
+                    } else {
+                        $scope.report.search.measures = '';
+                    }
                 }
 
                 $scope.onClearMeasureSearch = function() {
