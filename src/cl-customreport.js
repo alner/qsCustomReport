@@ -32,7 +32,7 @@ define([
                 this.$scope.size.clientHeight = $element[0].clientHeight;
                 this.$scope.size.clientWidth = $element[0].clientWidth;
 
-                this.$scope.handleResize($element,layout.props.allowCollapse);
+                this.$scope.handleResize($element,layout.props.allowCollapse, true);
 
             },
 
@@ -68,7 +68,7 @@ define([
                     }    
                 });
 
-                self.$scope.handleResize($element,layout.props.allowCollapse);
+                self.$scope.handleResize($element,layout.props.allowCollapse, false);
 
                 //const readyToPrint = new qlik.Promise(function(resolve, reject){                
                 if(self.$scope.isInitialized()) {
@@ -494,7 +494,7 @@ define([
                     },
                     onSort: function( /** ngSortEvent */ evt) {
                         $scope.report.usedDimensionsAndMeasures.splice(evt.newIndex, 0, $scope.report.usedDimensionsAndMeasures.splice(evt.oldIndex, 1)[0]);
-                        $scope.createChart();
+                        $scope.createChart(false); // don't updated used dims/measures
                     },
                 };
 				
@@ -513,19 +513,24 @@ define([
 
                 var localStorageId = $scope.$parent.layout.qExtendsId ? $scope.$parent.layout.qExtendsId : $scope.$parent.layout.qInfo.qId;
 
-                $scope.handleResize = function($element, allowCollapse) {
+                $scope.handleResize = function($element, allowCollapse, isResize) {
 
                     if ($element[0].clientHeight < $scope.minHeightCollapsed || $element[0].clientWidth < $scope.minWidthCollapsed) {
                         if (!$scope.collapsed && allowCollapse) {
                             $scope.collapsed = true;
-                            $scope.createChart();
+                            $scope.createChart(true);
                         }
                     } else {
                          if ($scope.collapsed) {
                             $scope.collapsed = false;
-                            $scope.createChart();
+                            $scope.createChart(true);
                         } else {
-                            $scope.deserializeReport().then(function(){
+                            // var qId = (isResize && $scope.report && $scope.report.model) 
+                            //     ? $scope.report.model.id
+                            //     : null
+                            //     ;
+                            // $scope.deserializeReport({qId: qId})
+                            $scope.deserializeReport({isFromPaint: !isResize}).then(function(){
                                 $scope.showLimits();
                             });                            
                         }
@@ -712,6 +717,9 @@ define([
                         var dimension = _.find(qDimensions.dimensionDefs, function(item) {
                             return item.qDef.cId == dimensionInfo.cId;
                         });
+                        if(!dimension)
+                            return null;
+
                         var dimensionOptions = dimension;
 
                         if (dimension.qLibraryId) {
@@ -782,6 +790,9 @@ define([
                         var measure = _.find(qMeasures.measureDefs, function(item) {
                             return item.qDef.cId == measureInfo.cId;
                         });
+                        if(!measure)
+                            return null;
+
                         var measureOptions = measure;
 
                         if (measure.qLibraryId) {
@@ -1144,6 +1155,20 @@ define([
                         true // all dimensions selected
                     ));
 
+                    // alternative dimension if exists
+                    if(qHyperCubeDef.qLayoutExclude 
+                    && qHyperCubeDef.qLayoutExclude.qHyperCubeDef
+                    && qHyperCubeDef.qLayoutExclude.qHyperCubeDef.qDimensions
+                    ) {
+                        usedDimensionsAndMeasures = usedDimensionsAndMeasures.concat($scope.getDimensionsProps(
+                            {
+                                dimensionInfos: qHyperCube.qDimensionInfo,
+                                dimensionDefs: qHyperCubeDef.qLayoutExclude.qHyperCubeDef.qDimensions
+                            },
+                            true // all dimensions selected
+                        ));                        
+                    }
+
                     usedDimensionsAndMeasures = usedDimensionsAndMeasures.concat($scope.getMeasuresProps(
                         {
                             measureInfos: qHyperCube.qMeasureInfo,
@@ -1151,6 +1176,21 @@ define([
                         },
                         true // all measures selected
                     ));
+
+                    // alternative measures if exists
+                    if(qHyperCubeDef.qLayoutExclude 
+                    && qHyperCubeDef.qLayoutExclude.qHyperCubeDef
+                    && qHyperCubeDef.qLayoutExclude.qHyperCubeDef.qMeasures
+                    ) {
+                        usedDimensionsAndMeasures = usedDimensionsAndMeasures.concat($scope.getMeasuresProps(
+                            {
+                                measureInfos: qHyperCube.qMeasureInfo,
+                                measureDefs: qHyperCubeDef.qLayoutExclude.qHyperCubeDef.qMeasures
+                            },
+                            true // all measures selected
+                        ));                        
+                    }
+
                     $scope.report.usedDimensionsAndMeasures = usedDimensionsAndMeasures;
                     $scope.updateDimAndMeasVariables();
                 };
@@ -1412,18 +1452,37 @@ define([
                             })
                         //});
                     } else {
+                        var funcStrigifyDimsMeasTypes = function(acc, itm) {
+                            return acc + ',' + itm.type;
+                        };
                         // get stored data
-                        if($scope.report.interColumnSortOrder.length != $scope.report.usedDimensionsAndMeasures.length) {
+                        if($scope.report.interColumnSortOrder.length != $scope.report.usedDimensionsAndMeasures.length
+                        || _.reduce($scope.report.interColumnSortOrder, funcStrigifyDimsMeasTypes, '') != _.reduce($scope.report.usedDimensionsAndMeasures, funcStrigifyDimsMeasTypes, '')
+                        ) {
                             var qInterColumnSortOrder = [];
                             var interColumnSortOrder = []; 
 
+                            var usedCounts = _.countBy($scope.report.usedDimensionsAndMeasures, 'type');
+                            var measureCount = 0;
+                            var dimensionCount = 0;
+          
                             _.each($scope.report.usedDimensionsAndMeasures, function(item, index) {
-                                if($scope.report.visualizationType === 'pivot-table' 
-                                && item.type === 'measure') {
-                                    if(qInterColumnSortOrder.indexOf(-1) === -1)
-                                        qInterColumnSortOrder.push(-1);
-                                } else
-                                    qInterColumnSortOrder.push(index);
+                                if($scope.report.visualizationType === 'pivot-table') {
+                                    if(item.type === 'measure') {
+                                        if(qInterColumnSortOrder.indexOf(-1) === -1)
+                                            qInterColumnSortOrder.push(-1);
+                                    } else {
+                                        qInterColumnSortOrder.push(index);
+                                    }
+                                } else {
+                                    if (item.type == 'measure') {
+                                        qInterColumnSortOrder.push(usedCounts.dimension + measureCount);
+                                        measureCount = measureCount + 1;
+                                    } else {
+                                        qInterColumnSortOrder.push(dimensionCount);
+                                        dimensionCount = dimensionCount + 1;
+                                    }
+                                }
 
                                 interColumnSortOrder.push({
                                     dataId: item.dataId,
@@ -1468,12 +1527,12 @@ define([
                     return deferred.promise;
                 };
 
-                $scope.createChart = function() {
+                $scope.createChart = function(isUpdateUsedDimensionsMeasures) {
                     //if ($scope.report.tableID != '') {
                     //if ($scope.report.usedDimensionsAndMeasures.length > 0) {
                       $scope.createVisualization().then(function AfterCreateVisualization(){
                         // Update used dimensions and measures !
-                        if($scope.report.model)
+                        if($scope.report.model && isUpdateUsedDimensionsMeasures)
                             $scope.updateUsedDimensionsMeasures(
                                 $scope.report.model.propertyTree.qProperty.qHyperCubeDef,
                                 $scope.report.visual.model.layout.qHyperCube
@@ -1521,7 +1580,7 @@ define([
 
                 $scope.commitChanges = function(){
                   $scope.isShouldCommitChanges = false;
-                  $scope.createChart();
+                  $scope.createChart(true);
                 }
 
                 $scope.clearDimsMeasSelection = function() {
@@ -1545,7 +1604,7 @@ define([
                     $scope.report.qInterColumnSortOrder = [];
                     $scope.report.currentState = null;
                     $scope.showLimits();
-                    $scope.createChart();
+                    $scope.createChart(true);
                 }
 
                 $scope.removeItem = function(item) {
@@ -1565,17 +1624,17 @@ define([
                             $scope.report.dimensions[idx].selected = false;
                     }
                     $scope.showLimits();
-                    $scope.createChart();
+                    $scope.createChart(true);
                 }
 
                 $scope.hideFieldAndSortbar = function() {
                     $scope.fieldsAndSortbarVisible = false;
-                    $scope.createChart();
+                    $scope.createChart(true);
                 }
 
                 $scope.showFieldAndSortbar = function() {
                     $scope.fieldsAndSortbarVisible = true;
-                    $scope.createChart();
+                    $scope.createChart(true);
                 }
                 $scope.exportData = function(string) {
                     if ($scope.report.usedDimensionsAndMeasures.length > 0) {
@@ -1809,12 +1868,27 @@ define([
                       $scope.report.currentState = null;
                       $scope.report.NoOfLeftDims = null;
                       $scope.report.layout = null;
-                    //   $scope.report.limits = {
-                    //       objects: {}
-                    //   };
-                      //$scope.report.limits.dimensions = 0;
-                      //$scope.report.limits.measures = 0;
-                      deferred.resolve();
+
+                      if(!$scope.data.activeTable)
+                        deferred.resolve();
+
+                      // load object layout
+                        app.getFullPropertyTree($scope.data.activeTable.qInfo.qId)
+                        .then(function(model) {
+                            model.getLayout().then(function(layout) {
+                                deferred.resolve();
+                                var propsWhiteList = _.filter(_.keys(layout), function(item){
+                                    return !item.match(/^q/); // exclude all props started with "q" (whose are process by engine)
+                                });
+                                // store layout without q-properties
+                                $scope.report.layout = _.pick(layout, propsWhiteList);
+                            }).catch(function(){
+                                deferred.resolve();
+                            });
+                        })
+                        .catch(function(){
+                            deferred.resolve();
+                        });
                     } else {
                         // varModel.getProperties().then(function(data){
                         if($scope.report.currentState != varModel) {
@@ -1856,7 +1930,7 @@ define([
                               //$scope.report.currentState = varModel;
 
                               if(!isLoadStateOnly || isRestoreSession)
-                                $scope.createChart();
+                                $scope.createChart(!(props && props.isFromPaint));
                               else if($scope.report.usedDimensionsAndMeasures.length > 0)
                                 $scope.serializeReport();
 
