@@ -267,7 +267,8 @@
         </div >
         <div ng-style="getTableHeight()">
             <!-- Begin rain load animation -->
-            <div class="rain rain-loader qv-block-ui ng-scope" ng-style="getTableHeight()" style="top:inherit;" ng-class="{'qv-fade-out': fadeOut, 'qv-transparent-background': transparentBackground}" tid="3e1f54">
+            <div class="rain rain-loader qv-block-ui ng-scope" style="top:inherit;" ng-style="getTableHeight()"  
+                ng-class="{'qv-fade-out': fadeOut, 'qv-transparent-background': transparentBackground, 'visible_block': isCreatingChart}" tid="3e1f54">
                 <div class="qv-animate progress-loader qv-loader-container qv-loader-huge qv-fade-in" ng-class="ngClasses">
                     <div class="one">
                         <svg xmlns="http://www.w3.org/2000/svg" version="1.1" x="0px" y="0px" viewBox="0 0 210 210" xml:space="preserve">
@@ -331,7 +332,8 @@
               class="lui-button--success"
               style="width: 100%; height: 100%">
           </button>
-          <div ng-show="!isShouldCommitChanges" id="{{'customreporttable' + customReportId}}" class="qv-object" style="overflow: visible" ></div>
+          <div ng-show="!isShouldCommitChanges" id="{{'customreporttable' + customReportId}}" class="qv-object" style="overflow: visible" >          
+          </div>
 
         </div>
       </div>

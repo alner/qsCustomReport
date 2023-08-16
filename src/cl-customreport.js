@@ -367,6 +367,7 @@ define([
                 $scope.minWidthCollapsed = 200;
                 $scope.minHeightCollapsed = 200;
                 $scope.isShouldCommitChanges = false;
+                $scope.isCreatingChart = false;
 
                 $scope.data = {
                     tag: null,
@@ -1126,6 +1127,7 @@ define([
                   if($scope.data.activeTable) {
                         //$scope.isChangedTable = true;
                         $scope.isShouldCommitChanges = false;
+                        $scope.isCreatingChart = false;
                         //$scope.report.visualizationType = $scope.data.activeTable.qData.visualization;
                         $scope.closeVisualization();
                         $scope.clearDimsMeasSelection();
@@ -1306,7 +1308,6 @@ define([
                   var deferred = $q.defer();
                   var layout = $scope.layout;
                 //   console.log('Layout', layout);
-
                   $scope.closeVisualization();
 
                   var promises = $scope.updateDimAndMeasVariables();
@@ -1321,6 +1322,8 @@ define([
                         if($scope.report.visualizationType
                         && data.dimensions.length > 0
                         && data.measures.length > 0) {
+                            $scope.isCreatingChart = true;
+
                             var HyperCubeDef = {
                             qDimensions: data.dimensions,
                             qMeasures: data.measures,
@@ -1351,6 +1354,7 @@ define([
                             
                             app.visualization.create($scope.report.visualizationType, [], options).then(function(visual) {
                                 //$scope.report.tableID = visual.id;
+                                $scope.isCreatingChart = false;
                                 var id = ($scope.fieldsAndSortbarVisible ? 'customreporttable' : 'customreporttablezoomed') + $scope.customReportId;
                                 visual.show(id);
                                 $scope.report.visual = visual;
@@ -1358,6 +1362,8 @@ define([
                                 // Invalidated
                                 $scope.report.visual.model.Validated.bind($scope.visualizationChanged);
                                 deferred.resolve(true);
+                            }).catch(function() {
+                                $scope.isCreatingChart = false;
                             });
                         }
                     });
