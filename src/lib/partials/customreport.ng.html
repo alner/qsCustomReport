@@ -255,7 +255,7 @@
         <div ng-show="fieldsAndSortbarVisible" class="bootstrap">
           <div class="containerlabel">{{data.displayText}} 
               <span style="padding: 0 10px" q-title-translation="Tooltip.ClearSelections" class="lui-icon lui-icon--clear-selections" ng-click="clearAll()" ng-class="report.usedDimensionsAndMeasures.length == 0 ? 'disabled': ''"></span>
-              <span style="padding-right: 10px" q-title-translation="AppOverview.Expand" class="lui-icon lui-icon--expand" ng-click="hideFieldAndSortbar()"></span>
+              <!-- <span style="padding-right: 10px" q-title-translation="AppOverview.Expand" class="lui-icon lui-icon--expand" ng-click="hideFieldAndSortbar()"></span> -->
 			  <span style="padding-right: 10px" q-title-translation="contextMenu.export" class="lui-icon lui-icon--export" ng-click="exportData('exportToExcel')"></span>			  
           </div>
           <ul id='reportSortable' ng-class="{plain:!data.tagColor}" class="sortablelist" >

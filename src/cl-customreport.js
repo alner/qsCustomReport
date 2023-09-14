@@ -25,7 +25,7 @@ define([
             support: {
                 snapshot: true,
                 export: false,
-				exportData: true
+				exportData: false
             },
 
             resize: function($element, layout) {
@@ -1634,8 +1634,8 @@ define([
                 }
 
                 $scope.hideFieldAndSortbar = function() {
-                    $scope.fieldsAndSortbarVisible = false;
-                    $scope.createChart(true);
+                    // $scope.fieldsAndSortbarVisible = false;
+                    // $scope.createChart(true);
                 }
 
                 $scope.showFieldAndSortbar = function() {
@@ -1910,7 +1910,7 @@ define([
 
                             if(stored) {
                               var activeTableId = qId || stored.activeTableId;
-                              $scope.fieldsAndSortbarVisible = stored.fieldsAndSortbarVisible;
+                              $scope.fieldsAndSortbarVisible = true; //stored.fieldsAndSortbarVisible;
                               state =  stored.states && stored.states[activeTableId];
                               if(state) {
                                 $scope.report.visualizationType = state.visualizationType;
