@@ -1345,7 +1345,8 @@ define([
                             //console.log('HyperCubeDef ', HyperCubeDef);
                             var options = {};                         
                             if($scope.report.layout) {
-                            options = _.extend(options, $scope.report.layout);    
+                                options = _.extend(options, $scope.report.layout);    
+                                delete options.visualization;
                             }                        
                             options.title = $scope.report.title == '' ? $scope.data.activeTable.qMeta.title : $scope.report.title;
                             options.qHyperCubeDef = HyperCubeDef;
@@ -1601,16 +1602,22 @@ define([
                 }
 
                 $scope.clearAll = function() {
-                    if($scope.data && $scope.data.activeTable && $scope.data.activeTable.qInfo)
+                    if($scope.data && $scope.data.activeTable && $scope.data.activeTable.qInfo) {
                         $scope.removeSessionData($scope.data.activeTable.qInfo.qId);
+                    }
 
                     $scope.clearDimsMeasSelection();
                     // $scope.report.usedDimensionsAndMeasures = [];
                     $scope.report.interColumnSortOrder = [];
                     $scope.report.qInterColumnSortOrder = [];
                     $scope.report.currentState = null;
+                    //$scope.updateDimAndMeasVariables();
                     $scope.showLimits();
-                    $scope.createChart(true);
+                    $scope.closeVisualization();
+                    $scope.updateDimAndMeasVariables();
+                    $scope.serializeReport();
+  
+                    //$scope.createChart(true);
                 }
 
                 $scope.removeItem = function(item) {
