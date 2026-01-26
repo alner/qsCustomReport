@@ -1,6 +1,6 @@
 <div ng-show="!fieldsAndSortbarVisible" id="{{'customreporttablezoomed' + customReportId}}" style="height: 100%;"></div>
 <div qv-extension id="{{'cl-customreport-container'+ customReportId}}" style="height: 100%; position: relative" ng-class="getClass()" ng-mousedown="onClick($event)">
-  <div ng-show="collapsed"><div class="containerlabel"><i style="padding-right: 10px; padding-left: 10px" class="icon-table"></i>{{data.displayText}} </div>
+  <div ng-show="collapsed"><div class="containerlabel"><i style="padding-right: 10px; padding-left: 10px" class="icon-table"></i>{{layout.props.displayText}} </div>
                 </div>
     <div ng-hide="collapsed" style="height: 100%">
         <div ng-show="fieldsAndSortbarVisible" class='container_left' ng-style="getContainerWidth('left')">
@@ -8,10 +8,18 @@
           <!--lui-button  ng-click="exportData('exportToExcel')" title='Export to Excel' ><i class="icon-toolbar-sharelist"> Excel</i></lui-button-->
 
           <div ng-show="isShowMasterObjectList" class="form-group">
-            <div class="containerlabel" ng-if="data.vizualizationsLabel">
-                {{data.vizualizationsLabel}}
+            <div 
+              class="containerlabel sb" 
+              ng-if="layout.props.vizualizationsLabel">
+                {{layout.props.vizualizationsLabel}}
+                <button class="lui-fade-button lui-disabled">
+                  <!-- <span
+                    class="lui-fade-button__icon lui-icon lui-icon--object"
+                  >
+                  </span> -->
+                </button>                
             </div>
-            <div class="containerlabel" ng-if="!data.vizualizationsLabel" q-translation="library.Visualizations"></div>
+            <div class="containerlabel" ng-if="!layout.props.vizualizationsLabel" q-translation="library.Visualizations"></div>
 
             <form name="myForm">
               <!--label class="containerlabel" for="repeatSelect">Select master object: </label-->
@@ -26,8 +34,8 @@
 
             <div class="containerlabel sb">
                 <!--  -->
-                <span ng-if="data.dimensionsLabel">{{data.dimensionsLabel}}</span>
-                <span ng-if="!data.dimensionsLabel" q-translation="Common.Dimensions"></span>
+                <span ng-if="layout.props.dimensionsLabel">{{layout.props.dimensionsLabel}}</span>
+                <span ng-if="!layout.props.dimensionsLabel" q-translation="Common.Dimensions"></span>
                 <!--span class="lui-text-default" q-translation="properties.dimensionLimits.limitation"></span-->
                 <span ng-show="report.limits.dimensions > 0" style="padding-left:5px">{{report.selections.dimension}} / {{report.limits.dimensions}}</span>
 
@@ -141,8 +149,8 @@
             </ul>
             
           <div class="containerlabel sb"> <!-- ng-show="isUpdateRights" -->
-            <span ng-if="data.measuresLabel">{{data.measuresLabel}}</span>
-            <span ng-if="!data.measuresLabel" q-translation="Common.Measures"></span>
+            <span ng-if="layout.props.measuresLabel">{{layout.props.measuresLabel}}</span>
+            <span ng-if="!layout.props.measuresLabel" q-translation="Common.Measures"></span>
             <!--span class="lui-text-default" q-translation="properties.dimensionLimits.limitation"></span-->
             <span ng-show="report.limits.measures > 0" >{{report.selections.measure}} / {{report.limits.measures}}</span>
 
@@ -253,12 +261,75 @@
       </div>
       <div class='container_right' ng-style="getContainerWidth('right')">
         <div ng-show="fieldsAndSortbarVisible" class="bootstrap">
-          <div class="containerlabel">{{data.displayText}} 
-              <span style="padding: 0 10px" q-title-translation="Tooltip.ClearSelections" class="lui-icon lui-icon--clear-selections" ng-click="clearAll()" ng-class="report.usedDimensionsAndMeasures.length == 0 ? 'disabled': ''"></span>
+          <div class="containerlabel">{{layout.props.displayText}} 
+              <!-- <span style="padding: 0 10px" q-title-translation="Tooltip.ClearSelections" class="lui-icon lui-icon--clear-selections" ng-click="clearAll()" ng-class="report.usedDimensionsAndMeasures.length == 0 ? 'disabled': ''"></span> -->
+               <button 
+                class="lui-fade-button"
+                style="padding: 0 10px"
+                q-title-translation="Tooltip.ClearSelections"
+                ng-class="report.usedDimensionsAndMeasures.length == 0 ? 'lui-disabled disabled': ''"
+                ng-click="clearAll()">
+                  <span
+                    style="padding-right: 10px" 
+                    class="lui-fade-button__icon lui-icon lui-icon--clear-selections"
+                  >
+                  </span>
+                  <span 
+                    class="lui-fade-button__text"
+                    ng-if="layout.props.clearLabel"
+                    >
+                    {{layout.props.clearLabel}}
+                  </span>
+              </button>              
               <!-- <span style="padding-right: 10px" q-title-translation="AppOverview.Expand" class="lui-icon lui-icon--expand" ng-click="hideFieldAndSortbar()"></span> -->
-			  <span style="padding-right: 10px" q-title-translation="contextMenu.export" class="lui-icon lui-icon--export" ng-click="exportData('exportToExcel')"></span>			  
+               <button 
+                class="lui-fade-button" 
+                ng-class="report.usedDimensionsAndMeasures.length == 0 || !report.visual ? 'lui-disabled disabled': ''"
+                ng-click="exportData('exportToExcel')"
+                q-title-translation="contextMenu.export"
+                >
+                  <span 
+                    style="padding-right: 10px" 
+                    class="lui-fade-button__icon lui-icon lui-icon--export"                      
+                  >
+                  </span>
+                  <span 
+                    class="lui-fade-button__text"
+                    ng-if="layout.props.exportLabel"
+                    >
+                    {{layout.props.exportLabel}}
+                  </span>
+              </button>
+
+               <button 
+                class="lui-fade-button" 
+                ng-class="report.usedDimensionsAndMeasures.length > 0 && report.visual && report.visualizationType && report.visualizationType.indexOf('pivot-table') != -1 ? '': 'hidden'"
+                ng-click="expandAll()"
+                >
+                  <span class="lui-fade-button__icon lui-icon lui-icon--plus"></span>
+                  <span 
+                    class="lui-fade-button__text"
+                    ng-if="layout.props.expandAllLabel"
+                    >
+                    {{layout.props.expandAllLabel}}
+                  </span>
+              </button>
+              
+               <button 
+                class="lui-fade-button" 
+                ng-class="report.usedDimensionsAndMeasures.length > 0 && report.visual && report.visualizationType && report.visualizationType.indexOf('pivot-table') != -1 ? '': 'hidden'"
+                ng-click="collapseAll()"
+                >
+                  <span class="lui-fade-button__icon lui-icon lui-icon--minus"></span>
+                  <span 
+                    class="lui-fade-button__text"
+                    ng-if="layout.props.colapseAllLabel"
+                    >
+                    {{layout.props.colapseAllLabel}}
+                  </span>
+              </button>              
           </div>
-          <ul id='reportSortable' ng-class="{plain:!data.tagColor}" class="sortablelist" >
+          <ul id='reportSortable' ng-class="{plain:!layout.props.tagColor}" class="sortablelist" >
             <li ng-class="item.type=='dimension' ? 'label-dimension' : 'label-measure'" title="{{item.title +'\n' + item.description}}" ng-repeat="item in report.usedDimensionsAndMeasures">
               <div>{{item.title}}</div><span class="lui-icon lui-icon--small lui-icon--remove" ng-click="removeItem(item)"></span>
 

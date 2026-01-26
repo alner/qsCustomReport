@@ -1,0 +1,13 @@
+{
+  "name": "deploy",
+  "version": "1.0.0",
+  "description": "Deploy utility for Qlik Sense server",
+  "main": "deploy.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "node-fetch": "^2.0.0",
+    "randomstring": "^1.1.5"
+  }
+}

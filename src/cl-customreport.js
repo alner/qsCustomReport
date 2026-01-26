@@ -25,7 +25,7 @@ define([
             support: {
                 snapshot: true,
                 export: false,
-				exportData: false
+				        exportData: false
             },
 
             resize: function($element, layout) {
@@ -378,6 +378,10 @@ define([
                     vizualizationsLabel: $scope.layout.props.visualizationsLabel,
                     dimensionsLabel: $scope.layout.props.dimensionsLabel,
                     measuresLabel: $scope.layout.props.measuresLabel,
+                    exportLabel: $scope.layout.props.exportLabel,
+                    clearLabel: $scope.layout.props.clearLabel,
+                    expandAllLabel: $scope.layout.props.expandAllLabel,
+                    collapseAllLabel: $scope.layout.props.collapseAllLabel,
                     masterObjectList: [],
                     masterDimensions: null,
                     masterMeasures: null,
@@ -397,7 +401,8 @@ define([
                 $scope.isUpdateRights = permissions && permissions.update;
                 $scope.isShowMasterObjectList  = false;
 
-                var groupByTags = $scope.layout.props.groupBy != 'none';
+                var groupByTags = !!($scope.layout.props.groupBy && $scope.layout.props.groupBy != 'none');
+                console.log('groupByTags', groupByTags);
                 // Current (displayed) report configuration
                 $scope.report = {
 //                    tableID: null,
@@ -432,6 +437,24 @@ define([
                         measures: '',
                     }
                 };
+
+                $scope.expandAll = function () {
+                  // console.log('Visual', $scope.report.visual);
+                  var v = $scope.report.visual;
+                  if(v && v.model) {
+                      v.model.expandTop("/qHyperCubeDef", 0, 0, true);
+                      v.model.expandLeft("/qHyperCubeDef", 0, 0, true);
+                  }
+                }
+
+                $scope.collapseAll = function() {
+                  // console.log('Visual', $scope.report.visual);
+                  var v = $scope.report.visual;                  
+                  if(v && v.model) {
+                    v.model.collapseTop("/qHyperCubeDef", 0, 0, true);
+                    v.model.collapseLeft("/qHyperCubeDef", 0, 0, true);
+                  }
+                }
 
                 $scope.onDimensionSearch = function() {
                     $scope.report.search.showDimensionSearch = !$scope.report.search.showDimensionSearch;
@@ -869,7 +892,7 @@ define([
                     $scope.report.measures = meas;
                     $scope.report.suppressZero = suppressZero;
 
-                    if($scope.layout.props.groupBy != 'none') {
+                    if($scope.layout.props.groupBy && $scope.layout.props.groupBy != 'none') {
                         $scope.report.dimensionsTags = {};
                         _.each(dimensions, function(dimension) {
                             _.each(dimension.tags, function(tag) {
@@ -1650,6 +1673,7 @@ define([
                     $scope.createChart(true);
                 }
                 $scope.exportData = function(string) {
+                    // console.log('Visual', $scope.report.visual);
                     if ($scope.report.usedDimensionsAndMeasures.length > 0) {
                         var options = {};
                         switch (string) {
@@ -1985,7 +2009,7 @@ define([
                 // });
 
                 $scope.$watch('layout.props.groupBy', function(groupBy) {
-                    $scope.report.groupByTags = groupBy != 'none';
+                    $scope.report.groupByTags = groupBy && (groupBy != 'none');
                     initMasterItems();
                 });                
 

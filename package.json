@@ -1,0 +1,22 @@
+{
+  "name": "cl-customreport",
+  "version": "1.0.0",
+  "description": "CustomReport",
+  "main": "cl-customreport.js",
+  "scripts": {
+    "deploy": "NODE_ENV=production && deploy/deploy.sh",
+    "build_dev": "./run_dev_build.sh",
+    "build": "./run_build.sh",
+    "deploy_dev": "./run_dev_build.sh && NODE_ENV=development deploy/deploy.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alner/qsCustomReport.git"
+  },
+  "keywords": [],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/alner/qsCustomReport/issues"
+  },
+  "homepage": "https://github.com/alner/qsCustomReport#readme"
+}

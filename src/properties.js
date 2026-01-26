@@ -212,6 +212,38 @@ define( [
     defaultValue: "Measures"
   }
 
+  var ExportLabel = {
+    type: "string",
+    expression: "optional",
+    label: "Export Label",
+    ref: "props.exportLabel",
+    defaultValue: ""
+  }
+
+  var ClearLabel = {
+    type: "string",
+    expression: "optional",
+    label: "Clear Label",
+    ref: "props.clearLabel",
+    defaultValue: ""
+  }
+
+  var ExpandAllLabel = {
+    type: "string",
+    expression: "optional",
+    label: "Expand Pivot Label",
+    ref: "props.expandAllLabel",
+    defaultValue: ""
+  }
+
+  var ColapseAllLabel = {
+    type: "string",
+    expression: "optional",
+    label: "Collapse Pivot Label",
+    ref: "props.colapseAllLabel",
+    defaultValue: ""
+  }
+
   // ****************************************************************************************
   // Property Panel Definition
   // ****************************************************************************************
@@ -236,6 +268,10 @@ define( [
           vizualizationsLabel: VisualizationLabel,
           dimensionsLabel: DimensionsLabel,
           measuresLabel: MeasuresLabel,
+          clearLabel: ClearLabel,
+          exportLabel: ExportLabel,
+          expandAllLabel: ExpandAllLabel,
+          collapseAllLabel: ColapseAllLabel,
         }
       }
     }
